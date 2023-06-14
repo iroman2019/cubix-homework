@@ -1,12 +1,11 @@
-package hu.cubix.hr.iroman.model;
+package hu.cubix.hr.iroman.dto;
 
 import java.time.LocalDateTime;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Component;
 
-@Component
-public class Employee {
+public class EmployeeDto {
 	private Long id;
 
 	private String job;
@@ -16,11 +15,12 @@ public class Employee {
 	@DateTimeFormat(pattern = "yyyy.MM.dd HH:mm")
 	private LocalDateTime timestamp;
 
-	public Employee() {
-		super();
+	public EmployeeDto() {
+
 	}
 
-	public Employee(Long id, String job, int salary, LocalDateTime timestamp) {
+	public EmployeeDto(Long id, String job, int salary, LocalDateTime timestamp) {
+		super();
 		this.id = id;
 		this.job = job;
 		this.salary = salary;
@@ -58,4 +58,5 @@ public class Employee {
 	public void setTimestamp(LocalDateTime timestamp) {
 		this.timestamp = timestamp;
 	}
+
 }

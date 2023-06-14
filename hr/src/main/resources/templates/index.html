@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="ISO-8859-1">
+<title>Employees</title>
+</head>
+<body>
+	<h3>Employees</h3>
+
+	<table>
+		<tr>
+			<th>id</th>
+			<th>job</th>
+			<th>salary</th>
+			<th>start of employment</th>
+		</tr>
+		<tr th:each="employee : ${employees}">
+			<td th:text="${employee.id}"></td>
+			<td th:text="${employee.job}"></td>
+			<td th:text="${employee.salary}"></td>
+			<td th:text="${#temporals.format(employee.timestamp, 'yyyy.MM.dd HH:mm')}"></td>
+		</tr>
+	</table>
+	
+	<br/>
+	
+	<form th:object="${newEmployee}" method="post" th:action="@{/employee}">
+		Id: <input th:field="*{id}" /> <br /> 
+		Job: <input th:field="*{job}" /> <br />
+		Salary: <input th:field="*{salary}" /> <br />
+		Start (yyyy.MM.dd HH:mm): <input th:field="*{timestamp}" /> <br />
+		<input type="submit" value="Add" />
+	</form>
+
+</body>
+</html>

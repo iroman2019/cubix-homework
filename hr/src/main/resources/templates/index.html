@@ -10,15 +10,18 @@
 	<table>
 		<tr>
 			<th>id</th>
+			<th>name</th>
 			<th>job</th>
 			<th>salary</th>
 			<th>start of employment</th>
 		</tr>
 		<tr th:each="employee : ${employees}">
 			<td th:text="${employee.id}"></td>
+			<td><a th:href="@{/details/{id}(id=${employee.id})}" th:text="${employee.name}"></a></td>
 			<td th:text="${employee.job}"></td>
 			<td th:text="${employee.salary}"></td>
 			<td th:text="${#temporals.format(employee.timestamp, 'yyyy.MM.dd HH:mm')}"></td>
+			<td><a th:href="@{/delete/{id}(id=${employee.id})}" th:text="Delete"></a></td>
 		</tr>
 	</table>
 	
@@ -26,6 +29,7 @@
 	
 	<form th:object="${newEmployee}" method="post" th:action="@{/employee}">
 		Id: <input th:field="*{id}" /> <br /> 
+		Name: <input th:field="*{name}" /> <br />
 		Job: <input th:field="*{job}" /> <br />
 		Salary: <input th:field="*{salary}" /> <br />
 		Start (yyyy.MM.dd HH:mm): <input th:field="*{timestamp}" /> <br />

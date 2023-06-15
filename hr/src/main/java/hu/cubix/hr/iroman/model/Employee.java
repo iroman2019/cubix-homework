@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 public class Employee {
 	private Long id;
 
+	private String name;
+
 	private String job;
 
 	private int salary;
@@ -20,8 +22,10 @@ public class Employee {
 		super();
 	}
 
-	public Employee(Long id, String job, int salary, LocalDateTime timestamp) {
+	public Employee(Long id, String name, String job, int salary, LocalDateTime timestamp) {
+		super();
 		this.id = id;
+		this.name = name;
 		this.job = job;
 		this.salary = salary;
 		this.timestamp = timestamp;
@@ -33,6 +37,14 @@ public class Employee {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getJob() {

@@ -34,13 +34,23 @@ public class CompanyController {
 	@Autowired
 	private CompanyService companyService;
 
-	private Map<Long, EmployeeDto> employees = new HashMap<>();
-
-	private Map<Long, EmployeeDto> employees2 = new HashMap<>();
-
 	private Map<Long, CompanyDto> companies = new HashMap<>();
 
 	{
+
+		companies.put(1L,
+				new CompanyDto(1L, 1532654L, "SoftverQuality Company", "1111 Budapest Teszt u. 3", null));
+		companies.put(2L, new CompanyDto(2L, 1532234L, "InformationTechnology Company",
+				"2310 Szigetszentmiklós Ág u. 12", null));
+	}
+
+	@GetMapping
+	public List<CompanyDto> findAll(@RequestParam("full") Optional<Boolean> full) {
+		
+		Map<Long, EmployeeDto> employees = new HashMap<>();
+
+		Map<Long, EmployeeDto> employees2 = new HashMap<>();
+		
 		employees.put(1L, new EmployeeDto((long) 1, "Eric", "developer", 550000,
 				LocalDateTime.of(2022, Month.AUGUST, 28, 10, 30, 48)));
 
@@ -55,15 +65,8 @@ public class CompanyController {
 
 		employees2.put(3L, new EmployeeDto((long) 3, "Peter", "director", 2000000,
 				LocalDateTime.of(2010, Month.JULY, 22, 10, 30, 48)));
-
-		companies.put(1L,
-				new CompanyDto(1L, 1532654L, "SoftverQuality Company", "1111 Budapest Teszt u. 3", employees));
-		companies.put(2L, new CompanyDto(2L, 1532234L, "InformationTechnology Company",
-				"2310 Szigetszentmiklós Ág u. 12", employees2));
-	}
-
-	@GetMapping
-	public List<CompanyDto> findAll(@RequestParam("full") Optional<Boolean> full) {
+		companies.get(1L).setEmployees(employees);
+		companies.get(2L).setEmployees(employees2);
 
 		if (full.orElse(false)) {
 			return new ArrayList<>(companies.values());
@@ -79,7 +82,7 @@ public class CompanyController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<CompanyDto> findById(@PathVariable long id) {
+	public ResponseEntity<CompanyDto> findById(@PathVariable long id, @RequestParam("full") Optional<Boolean> full) {
 
 		CompanyDto companyDto = companies.get(id);
 
@@ -87,7 +90,8 @@ public class CompanyController {
 			return ResponseEntity.notFound().build();
 		}
 
-		return ResponseEntity.ok(companyDto);
+		return ResponseEntity.ok(full.orElse(false) ? companyDto
+				: new CompanyDto(companyDto.getId(), companyDto.getId(), companyDto.getName(), companyDto.getAddres()));
 
 	}
 
@@ -127,7 +131,7 @@ public class CompanyController {
 		if (!companies.containsKey(id))
 			return ResponseEntity.notFound().build();
 
-		if (companies.get(id).getEmployees().containsKey(employee.getId()))
+		if (companies.get(id).getEmployees().containsKey(employee.id()))
 			return ResponseEntity.badRequest().build();
 
 		CompanyDto modifiedCompany = companyService.addNewEmployee(companies.get(id), employee);

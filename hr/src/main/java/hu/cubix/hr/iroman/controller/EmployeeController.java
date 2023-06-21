@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,19 +21,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import hu.cubix.hr.iroman.dto.EmployeeDto;
+import hu.cubix.hr.iroman.mapper.EmployeeMapper;
 import hu.cubix.hr.iroman.model.Employee;
+import hu.cubix.hr.iroman.service.AbstractEmployeeService;
 import hu.cubix.hr.iroman.service.EmployeeService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeController {
 
 	@Autowired
-	EmployeeService employeeService;
+	AbstractEmployeeService employeeService;
 
-	private Map<Long, EmployeeDto> employees = new HashMap<>();
+	@Autowired
+	EmployeeMapper employeeMapper;
+
+	// private Map<Long, EmployeeDto> employees = new HashMap<>();
 	private Map<Long, Employee> employeesFromModel = new HashMap<>();
 
 	LocalDateTime startWork1 = LocalDateTime.of(2022, Month.AUGUST, 28, 14, 33, 48);
@@ -43,8 +52,8 @@ public class EmployeeController {
 	LocalDateTime startWork4 = LocalDateTime.of(2010, Month.NOVEMBER, 20, 14, 33);
 
 	{
-		employees.put(1L, new EmployeeDto((long) 1, "Eric", "developer", 650000,
-				LocalDateTime.of(2022, Month.AUGUST, 28, 10, 30, 48)));
+//		employees.put(1L, new EmployeeDto((long) 1, "Eric", "developer", 650000,
+//				LocalDateTime.of(2022, Month.AUGUST, 28, 10, 30, 48)));
 		employeesFromModel.put(1L, new Employee((long) 1, "Tom", "developer", 550000, startWork1));
 		employeesFromModel.put(2L, new Employee((long) 2, "Hannah", "manager", 650000, startWork2));
 		employeesFromModel.put(3L, new Employee((long) 3, "Christine", "tester", 400000, startWork3));
@@ -53,76 +62,83 @@ public class EmployeeController {
 
 	@GetMapping
 	public List<EmployeeDto> findAll() {
-		return new ArrayList<>(employees.values());
+		List<Employee> allEmployees = employeeService.findAll();
+		return employeeMapper.employeesToDtos(allEmployees);
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<EmployeeDto> findById(@PathVariable long id) {
+	public EmployeeDto findById(@PathVariable long id) {
 
-		EmployeeDto employeetDto = employees.get(id);
+		Employee employee = employeeService.findById(id);
 
-		if (employeetDto == null) {
-			return ResponseEntity.notFound().build();
+		if (employee == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 		}
 
-		return ResponseEntity.ok(employeetDto);
+		return employeeMapper.employeeToDto(employee);
 
 	}
 
 	@PostMapping
-	public ResponseEntity<EmployeeDto> createNewEmployee(@RequestBody EmployeeDto employee) {
+	public EmployeeDto createNewEmployee(@RequestBody @Valid EmployeeDto employeeDto) {
 
-		if (employees.containsKey(employee.getId()))
-			return ResponseEntity.badRequest().build();
+		Employee employee = employeeMapper.dtoToEmployee(employeeDto);
 
-		employees.put(employee.getId(), employee);
+		Employee savedEmployee = employeeService.save(employee);
 
-		return ResponseEntity.ok(employee);
+		if (savedEmployee == null)
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
+		return employeeMapper.employeeToDto(employee);
 
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<EmployeeDto> update(@PathVariable long id, @RequestBody EmployeeDto employee) {
+	public EmployeeDto update(@PathVariable long id, @RequestBody @Valid EmployeeDto employeeDto) {
 
-		employee.setId(id);
+		// employee.setId(id);
+		employeeDto = new EmployeeDto(employeeDto.id(), employeeDto.name(), employeeDto.job(), employeeDto.salary(),
+				employeeDto.timestamp());
 
-		if (!employees.containsKey(id))
-			return ResponseEntity.notFound().build();
+		Employee employee = employeeMapper.dtoToEmployee(employeeDto);
 
-		employees.put(id, employee);
+		Employee updatedEmployee = employeeService.update(employee);
 
-		return ResponseEntity.ok(employee);
+		if (updatedEmployee == null)
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+
+		return employeeMapper.employeeToDto(updatedEmployee);
 
 	}
 
 	@DeleteMapping("/{id}")
 	public void deleteEmployee(@PathVariable long id) {
 
-		employees.remove(id);
+		employeeService.delete(id);
 
 	}
 
-	@GetMapping(params = { "salaryLimit" })
+	@GetMapping(value = "/overthelimit", params = { "salaryLimit" })
 	public List<EmployeeDto> findBySalary(@RequestParam int salaryLimit) {
 
 		// Postman test sample: GET
 		// http://localhost:8080/api/employees?salaryLimit=500000
 
-		return new ArrayList<>(
-				employees.values().stream().filter(e -> e.getSalary() > salaryLimit).collect(Collectors.toList()));
+		List<EmployeeDto> employees = employeeMapper.employeesToDtos(employeeService.findAll());
+
+		return new ArrayList<>(employees.stream().filter(e -> e.salary() > salaryLimit).collect(Collectors.toList()));
 	}
 
 	@GetMapping("salarypercent/{id}")
-	public ResponseEntity<Integer> findPercent(@PathVariable long id) {
+	public Integer findPercent(@PathVariable long id) {
 
-		Employee employee = employeesFromModel.get(id);
+		Employee employee = employeeService.findById(id);
 
 		if (employee == null) {
-			return ResponseEntity.notFound().build();
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 		}
 
-		return ResponseEntity.ok(employeeService.getPayRaisetPercent(employee));
-
+		return employeeService.getPayRaisetPercent(employee);
 	}
 
 }

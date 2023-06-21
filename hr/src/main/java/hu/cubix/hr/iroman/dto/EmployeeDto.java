@@ -2,72 +2,14 @@ package hu.cubix.hr.iroman.dto;
 
 import java.time.LocalDateTime;
 
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.stereotype.Component;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
-public class EmployeeDto {
-	private Long id;
-
-	private String name;
-
-	private String job;
-
-	private int salary;
-
-	@DateTimeFormat(pattern = "yyyy.MM.dd HH:mm")
-	private LocalDateTime timestamp;
-
+public record EmployeeDto (@PositiveOrZero long id, @NotEmpty String name, @NotEmpty String job, @Positive int salary, @Past LocalDateTime timestamp) {
+	
 	public EmployeeDto() {
-
+		this(0, null, null, 0, null);
 	}
-
-	public EmployeeDto(Long id, String name, String job, int salary, LocalDateTime timestamp) {
-		super();
-		this.id = id;
-		this.name = name;
-		this.job = job;
-		this.salary = salary;
-		this.timestamp = timestamp;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getJob() {
-		return job;
-	}
-
-	public void setJob(String job) {
-		this.job = job;
-	}
-
-	public int getSalary() {
-		return salary;
-	}
-
-	public void setSalary(int salary) {
-		this.salary = salary;
-	}
-
-	public LocalDateTime getTimestamp() {
-		return timestamp;
-	}
-
-	public void setTimestamp(LocalDateTime timestamp) {
-		this.timestamp = timestamp;
-	}
-
 }

@@ -16,12 +16,12 @@
 			<th>start of employment</th>
 		</tr>
 		<tr th:each="employee : ${employees}">
-			<td th:text="${employee.id}"></td>
-			<td><a th:href="@{/details/{id}(id=${employee.id})}" th:text="${employee.name}"></a></td>
-			<td th:text="${employee.job}"></td>
-			<td th:text="${employee.salary}"></td>
-			<td th:text="${#temporals.format(employee.timestamp, 'yyyy.MM.dd HH:mm')}"></td>
-			<td><a th:href="@{/delete/{id}(id=${employee.id})}" th:text="Delete"></a></td>
+			<td th:text="${employee.id}">Id</td>
+			<td><a th:href="@{/details/{id}(id=${employee.id})}" th:text="${employee.name}">Name</a></td>
+			<td th:text="${employee.job}">Title</td>
+			<td th:text="${employee.salary}">Salary</td>
+			<td th:text="${#temporals.format(employee.timestamp, 'yyyy.MM.dd HH:mm')}">Timestamp</td>
+			<td><a th:href="@{/delete/{id}(id=${employee.id})}" th:text="Delete">Delete</a></td>
 		</tr>
 	</table>
 	

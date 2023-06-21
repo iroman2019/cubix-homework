@@ -11,7 +11,7 @@ import hu.cubix.hr.iroman.config.HrConfigurationProperties;
 import hu.cubix.hr.iroman.model.Employee;
 
 //@Service
-public class SmartEmployeeService implements EmployeeService {
+public class SmartEmployeeService extends AbstractEmployeeService {
 
 //	@Value("${hr.salary.smart.limit1}")
 //	private double limit1;

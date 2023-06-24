@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +25,6 @@ import org.springframework.web.server.ResponseStatusException;
 import hu.cubix.hr.iroman.dto.EmployeeDto;
 import hu.cubix.hr.iroman.mapper.EmployeeMapper;
 import hu.cubix.hr.iroman.model.Employee;
-import hu.cubix.hr.iroman.service.AbstractEmployeeService;
 import hu.cubix.hr.iroman.service.EmployeeService;
 import jakarta.validation.Valid;
 
@@ -35,7 +33,7 @@ import jakarta.validation.Valid;
 public class EmployeeController {
 
 	@Autowired
-	AbstractEmployeeService employeeService;
+	EmployeeService employeeService;
 
 	@Autowired
 	EmployeeMapper employeeMapper;

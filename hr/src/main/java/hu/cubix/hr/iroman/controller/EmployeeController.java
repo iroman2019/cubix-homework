@@ -2,6 +2,7 @@ package hu.cubix.hr.iroman.controller;
 
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 import hu.cubix.hr.iroman.dto.EmployeeDto;
 import hu.cubix.hr.iroman.mapper.EmployeeMapper;
 import hu.cubix.hr.iroman.model.Employee;
+import hu.cubix.hr.iroman.repository.EmployeeRepository;
 import hu.cubix.hr.iroman.service.EmployeeService;
 import jakarta.validation.Valid;
 
@@ -95,7 +97,7 @@ public class EmployeeController {
 	public EmployeeDto update(@PathVariable long id, @RequestBody @Valid EmployeeDto employeeDto) {
 
 		// employee.setId(id);
-		employeeDto = new EmployeeDto(employeeDto.id(), employeeDto.name(), employeeDto.job(), employeeDto.salary(),
+		employeeDto = new EmployeeDto(id, employeeDto.name(), employeeDto.job(), employeeDto.salary(),
 				employeeDto.timestamp());
 
 		Employee employee = employeeMapper.dtoToEmployee(employeeDto);
@@ -138,5 +140,39 @@ public class EmployeeController {
 
 		return employeeService.getPayRaisetPercent(employee);
 	}
+	
+	@GetMapping(value = "/job", params = { "jobName" })
+	public List<EmployeeDto> findByJob(@RequestParam String jobName) {
 
+		// Postman test sample: GET
+		// http://localhost:8080/api/employees/job?jobName=tester
+
+		List<EmployeeDto> employeesByJob = employeeMapper.employeesToDtos(employeeService.findByJob(jobName));
+		return employeesByJob;
+	}
+	
+	@GetMapping(value = "/name", params = { "namePrefix" })
+	public List<EmployeeDto> findByNamePrefix(@RequestParam String namePrefix) {
+
+		// Postman test sample: GET
+		// http://localhost:8080/api/employees/name?namePrefix=da
+
+		List<EmployeeDto> employeesByNamePrefix = employeeMapper.employeesToDtos(employeeService.findByNameStartingWith(namePrefix));
+		return employeesByNamePrefix;
+	}
+	
+	@GetMapping(value = "/between", params = { "minDate", "maxDate"})
+	public List<EmployeeDto> findByStartJob(@RequestParam String minDate, @RequestParam String maxDate) {
+
+		// Postman test sample: GET
+		// http://localhost:8080/api/employees/between?minDate=2000-02-14 10:12&maxDate=2022-12-10 07:00
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        LocalDateTime minDateAsDate = LocalDateTime.parse(minDate, formatter);
+        LocalDateTime maxDateAsDate = LocalDateTime.parse(maxDate, formatter);
+
+		List<EmployeeDto> employeesBetween = employeeMapper.employeesToDtos(employeeService.findByTimestampBetween(minDateAsDate, maxDateAsDate));
+		return employeesBetween;
+	}
 }

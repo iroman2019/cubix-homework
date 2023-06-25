@@ -5,8 +5,15 @@ import java.time.LocalDateTime;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Component;
 
-@Component
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+
+@Entity
 public class Employee {
+	
+	@Id
+	@GeneratedValue
 	private Long id;
 
 	private String name;

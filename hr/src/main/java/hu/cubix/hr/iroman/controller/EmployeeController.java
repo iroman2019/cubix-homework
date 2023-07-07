@@ -3,14 +3,15 @@ package hu.cubix.hr.iroman.controller;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,6 +28,7 @@ import hu.cubix.hr.iroman.dto.EmployeeDto;
 import hu.cubix.hr.iroman.mapper.EmployeeMapper;
 import hu.cubix.hr.iroman.model.Employee;
 import hu.cubix.hr.iroman.repository.EmployeeRepository;
+import hu.cubix.hr.iroman.repository.PositionRepository;
 import hu.cubix.hr.iroman.service.EmployeeService;
 import jakarta.validation.Valid;
 
@@ -39,6 +41,12 @@ public class EmployeeController {
 
 	@Autowired
 	EmployeeMapper employeeMapper;
+	
+	@Autowired
+	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	PositionRepository positionRepository;
 
 	// private Map<Long, EmployeeDto> employees = new HashMap<>();
 	private Map<Long, Employee> employeesFromModel = new HashMap<>();
@@ -54,16 +62,29 @@ public class EmployeeController {
 	{
 //		employees.put(1L, new EmployeeDto((long) 1, "Eric", "developer", 650000,
 //				LocalDateTime.of(2022, Month.AUGUST, 28, 10, 30, 48)));
-		employeesFromModel.put(1L, new Employee((long) 1, "Tom", "developer", 550000, startWork1));
-		employeesFromModel.put(2L, new Employee((long) 2, "Hannah", "manager", 650000, startWork2));
-		employeesFromModel.put(3L, new Employee((long) 3, "Christine", "tester", 400000, startWork3));
-		employeesFromModel.put(4L, new Employee((long) 4, "Joe", "developer", 1000000, startWork4));
+//		employeesFromModel.put(1L, new Employee((long) 1, "Tom", developer, 550000, startWork1));
+//		employeesFromModel.put(2L, new Employee((long) 2, "Hannah", manager, 650000, startWork2));
+//		employeesFromModel.put(3L, new Employee((long) 3, "Christine", tester, 400000, startWork3));
+//		employeesFromModel.put(4L, new Employee((long) 4, "Joe", developer, 1000000, startWork4));
 	}
 
 	@GetMapping
-	public List<EmployeeDto> findAll() {
-		List<Employee> allEmployees = employeeService.findAll();
-		return employeeMapper.employeesToDtos(allEmployees);
+	public List<EmployeeDto> findAll(@RequestParam Optional<Integer> salaryLimit, @SortDefault("id") Pageable pageable) {
+		List<Employee> employees = null;
+		if (salaryLimit.isPresent()) {
+			Page<Employee> pageOfEmployee = employeeRepository.findBySalaryGreaterThan(salaryLimit.get(), pageable);
+			System.out.println("Oldalak száma: " + pageOfEmployee.getTotalPages());
+			System.out.println("Összes adott employee: " + pageOfEmployee.getTotalElements());
+			System.out.println("Első oldal?: " + pageOfEmployee.isFirst());
+			System.out.println("Utolsó oldal?: " + pageOfEmployee.isLast());
+			System.out.println("Van következő oldal?: " + pageOfEmployee.hasNext());
+			System.out.println("Van előző oldal?: " + pageOfEmployee.hasPrevious());
+			
+			employees = pageOfEmployee.getContent();
+		} else {
+			employees = employeeService.findAll();
+		}
+		return employeeMapper.employeesToDtos(employees);
 	}
 
 	@GetMapping("/{id}")
@@ -89,7 +110,7 @@ public class EmployeeController {
 		if (savedEmployee == null)
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 
-		return employeeMapper.employeeToDto(employee);
+		return employeeMapper.employeeToDto(savedEmployee);
 
 	}
 
@@ -98,7 +119,7 @@ public class EmployeeController {
 
 		// employee.setId(id);
 		employeeDto = new EmployeeDto(id, employeeDto.name(), employeeDto.job(), employeeDto.salary(),
-				employeeDto.timestamp());
+				employeeDto.timestamp(), employeeDto.company());
 
 		Employee employee = employeeMapper.dtoToEmployee(employeeDto);
 
@@ -118,16 +139,16 @@ public class EmployeeController {
 
 	}
 
-	@GetMapping(value = "/overthelimit", params = { "salaryLimit" })
-	public List<EmployeeDto> findBySalary(@RequestParam int salaryLimit) {
-
-		// Postman test sample: GET
-		// http://localhost:8080/api/employees?salaryLimit=500000
-
-		List<EmployeeDto> employees = employeeMapper.employeesToDtos(employeeService.findAll());
-
-		return new ArrayList<>(employees.stream().filter(e -> e.salary() > salaryLimit).collect(Collectors.toList()));
-	}
+//	@GetMapping(value = "/overthelimit", params = { "salaryLimit" })
+//	public List<EmployeeDto> findBySalary(@RequestParam int salaryLimit) {
+//
+//		// Postman test sample: GET
+//		// http://localhost:8080/api/employees?salaryLimit=500000
+//
+//		List<EmployeeDto> employees = employeeMapper.employeesToDtos(employeeService.findAll());
+//
+//		return new ArrayList<>(employees.stream().filter(e -> e.salary() > salaryLimit).collect(Collectors.toList()));
+//	}
 
 	@GetMapping("salarypercent/{id}")
 	public Integer findPercent(@PathVariable long id) {

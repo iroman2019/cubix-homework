@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import hu.cubix.hr.iroman.dto.EmployeeDto;
+import hu.cubix.hr.iroman.model.Position;
+import hu.cubix.hr.iroman.model.Qualification;
 import reactor.core.publisher.Mono;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -32,13 +34,13 @@ public class EmployeeControllerIT {
 	void testThatCreatedEmployeeIsListed() {
 
 		List<EmployeeDto> employeesBefore = getAllEmployees();
-
+	
 		long newId = 100;
 		if (employeesBefore.size() > 0) {
 			newId = employeesBefore.get(employeesBefore.size() - 1).id() + 1;
 		}
-		EmployeeDto newEmployee = new EmployeeDto(newId, "testname", "test job", 400000,
-				LocalDateTime.of(2010, Month.NOVEMBER, 20, 14, 33));
+		EmployeeDto newEmployee = new EmployeeDto(newId, "testname", "developer", 400000,
+				LocalDateTime.of(2010, Month.NOVEMBER, 20, 14, 33), null);
 
 		createEmployee(newEmployee);
 		List<EmployeeDto> employeesAfter = getAllEmployees();
@@ -61,7 +63,7 @@ public class EmployeeControllerIT {
 
 		// The timestamp cannot be a future date
 		EmployeeDto newEmployee = new EmployeeDto(newId, "testname", "test job", 400000,
-				LocalDateTime.of(2025, Month.NOVEMBER, 20, 14, 33, 00));
+				LocalDateTime.of(2025, Month.NOVEMBER, 20, 14, 33, 00), null);
 
 		createWrongEmployee(newEmployee);
 		List<EmployeeDto> employeesAfter = getAllEmployees();
@@ -92,11 +94,11 @@ public class EmployeeControllerIT {
 	@Test
 	void shouldReturnNotFoundForBadEmployeeJob() {
 		EmployeeDto employeeDto = new EmployeeDto(99, "Previous", "prev job", 400000,
-				LocalDateTime.of(2020, Month.NOVEMBER, 10, 14, 33));
+				LocalDateTime.of(2020, Month.NOVEMBER, 10, 14, 33), null);
 
 		createEmployee(employeeDto);
 		EmployeeDto updatedEmployee = new EmployeeDto(99, "Nobody", "", 400000,
-				LocalDateTime.of(2010, Month.NOVEMBER, 20, 14, 33));
+				LocalDateTime.of(2010, Month.NOVEMBER, 20, 14, 33), null);
 		
 		webtestClient.put().uri(API_EMPLOYEES_ID, Collections.singletonMap("id", employeeDto.id()))
 		.body(Mono.just(updatedEmployee), EmployeeDto.class).exchange().expectStatus().isBadRequest();
@@ -123,12 +125,12 @@ public class EmployeeControllerIT {
 	public void testUpdateEmployee() {
 
 		EmployeeDto employeeDto = new EmployeeDto(10, "Previous", "prev job", 400000,
-				LocalDateTime.of(2020, Month.NOVEMBER, 10, 14, 33));
+				LocalDateTime.of(2020, Month.NOVEMBER, 10, 14, 33), null);
 
 		createEmployee(employeeDto);
 
 		EmployeeDto updatedEmployee = new EmployeeDto(10, "Next", "next job", 400000,
-				LocalDateTime.of(2020, Month.NOVEMBER, 10, 14, 33));
+				LocalDateTime.of(2020, Month.NOVEMBER, 10, 14, 33), null);
 
 		webtestClient.put().uri(API_EMPLOYEES_ID, Collections.singletonMap("id", employeeDto.id()))
 				.body(Mono.just(updatedEmployee), EmployeeDto.class).exchange().expectStatus().isOk().expectBody()

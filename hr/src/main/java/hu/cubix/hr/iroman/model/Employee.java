@@ -1,41 +1,61 @@
 package hu.cubix.hr.iroman.model;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.stereotype.Component;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Employee {
-	
+
 	@Id
 	@GeneratedValue
 	private Long id;
 
 	private String name;
 
-	private String job;
-
 	private int salary;
 
 	@DateTimeFormat(pattern = "yyyy.MM.dd HH:mm")
 	private LocalDateTime timestamp;
 
+	@ManyToOne
+	private Company company;
+
+	@ManyToOne
+	private Position position;
+
 	public Employee() {
-		super();
 	}
 
-	public Employee(Long id, String name, String job, int salary, LocalDateTime timestamp) {
+	public Employee(Long id, String name, Position position, int salary, LocalDateTime timestamp) {
 		super();
 		this.id = id;
 		this.name = name;
-		this.job = job;
+		this.position = position;
 		this.salary = salary;
 		this.timestamp = timestamp;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Employee other = (Employee) obj;
+		return Objects.equals(id, other.id);
 	}
 
 	public Long getId() {
@@ -54,12 +74,12 @@ public class Employee {
 		this.name = name;
 	}
 
-	public String getJob() {
-		return job;
+	public Position getPosition() {
+		return position;
 	}
 
-	public void setJob(String job) {
-		this.job = job;
+	public void setPosition(Position position) {
+		this.position = position;
 	}
 
 	public int getSalary() {
@@ -77,4 +97,13 @@ public class Employee {
 	public void setTimestamp(LocalDateTime timestamp) {
 		this.timestamp = timestamp;
 	}
+
+	public Company getCompany() {
+		return company;
+	}
+
+	public void setCompany(Company company) {
+		this.company = company;
+	}
+
 }

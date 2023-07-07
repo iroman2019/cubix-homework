@@ -1,74 +1,125 @@
 package hu.cubix.hr.iroman.model;
 
-import java.util.Map;
+import java.util.List;
+import java.util.Objects;
+import java.util.ArrayList;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
-import hu.cubix.hr.iroman.dto.EmployeeDto;
-
+@Entity
 public class Company {
-		private Long id;
-		private Long registrationNumber;
-		private String name;
-		private String addres;
-		private Map<Long, EmployeeDto> employees;
-
-		public Company() {
-
-		}
+	
+	@Id
+	@GeneratedValue
+	private Long id;
+	private Long registrationNumber;
+	private String name;
+	private String addres;
 		
-		public Company(Long id, Long registrationNumber, String name, String addres) {
-			super();
-			this.id = id;
-			this.registrationNumber = registrationNumber;
-			this.name = name;
-			this.addres = addres;
-		}
+	@OneToMany(mappedBy="company")
+	private List<Employee> employees;
+	
+	@ManyToOne
+	private CompanyType type;
 
-		public Company(Long id, Long registrationNumber, String name, String addres, Map<Long, EmployeeDto> employees) {
-			super();
-			this.id = id;
-			this.registrationNumber = registrationNumber;
-			this.name = name;
-			this.addres = addres;
-			this.employees = employees;
-		}
+	public Company() {
 
-		public Long getId() {
-			return id;
-		}
+	}
 
-		public void setId(Long id) {
-			this.id = id;
-		}
+	public Company(Long id, Long registrationNumber, String name, String addres, List<Employee> employees) {
+		super();
+		this.id = id;
+		this.registrationNumber = registrationNumber;
+		this.name = name;
+		this.addres = addres;
+		this.employees = employees;
+	}
+	
+	
 
-		public Long getRegistrationNumber() {
-			return registrationNumber;
-		}
+	public Company(Long id, Long registrationNumber, String name, String addres, CompanyType type,
+			List<Employee> employees) {
+		super();
+		this.id = id;
+		this.registrationNumber = registrationNumber;
+		this.name = name;
+		this.addres = addres;
+		this.type = type;
+		this.employees = employees;
+	}
 
-		public void setRegistrationNumber(Long registrationNumber) {
-			this.registrationNumber = registrationNumber;
-		}
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
 
-		public String getName() {
-			return name;
-		}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Company other = (Company) obj;
+		return Objects.equals(id, other.id);
+	}
 
-		public void setName(String name) {
-			this.name = name;
-		}
+	public Long getId() {
+		return id;
+	}
 
-		public String getAddres() {
-			return addres;
-		}
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-		public void setAddres(String addres) {
-			this.addres = addres;
-		}
+	public Long getRegistrationNumber() {
+		return registrationNumber;
+	}
 
-		public Map<Long, EmployeeDto> getEmployees() {
-			return employees;
-		}
+	public void setRegistrationNumber(Long registrationNumber) {
+		this.registrationNumber = registrationNumber;
+	}
 
-		public void setEmployees(Map<Long, EmployeeDto> employees) {
-			this.employees = employees;
-		}
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getAddres() {
+		return addres;
+	}
+
+	public void setAddres(String addres) {
+		this.addres = addres;
+	}
+
+	public List<Employee> getEmployees() {
+		return employees;
+	}
+
+	public void setEmployees(List<Employee> employees) {
+		this.employees = employees;
+	}
+	
+	public void addEmployee(Employee employee){
+		if(this.employees == null)
+			this.employees = new ArrayList<>();
+		employees.add(employee);
+		employee.setCompany(this);
+	}
+
+	public CompanyType getType() {
+		return type;
+	}
+
+	public void setType(CompanyType type) {
+		this.type = type;
+	}
 }

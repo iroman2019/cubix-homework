@@ -1,27 +1,39 @@
 package hu.cubix.hr.iroman.dto;
 
-import java.util.Map;
+import java.util.List;
+
+import hu.cubix.hr.iroman.model.CompanyType;
 
 public class CompanyDto {
 	private Long id;
 	private Long registrationNumber;
 	private String name;
 	private String addres;
-	private Map<Long, EmployeeDto> employees;
+	private CompanyType type;
+	private List<EmployeeDto> employees;
 
 	public CompanyDto() {
 
 	}
-	
+
 	public CompanyDto(Long id, Long registrationNumber, String name, String addres) {
-		super();
 		this.id = id;
 		this.registrationNumber = registrationNumber;
 		this.name = name;
 		this.addres = addres;
 	}
 
-	public CompanyDto(Long id, Long registrationNumber, String name, String addres, Map<Long, EmployeeDto> employees) {
+	public CompanyDto(Long id, Long registrationNumber, String name, String addres, CompanyType type,
+			List<EmployeeDto> employees) {
+		this.id = id;
+		this.registrationNumber = registrationNumber;
+		this.name = name;
+		this.addres = addres;
+		this.type = type;
+		this.employees = employees;
+	}
+
+	public CompanyDto(Long id, Long registrationNumber, String name, String addres, List<EmployeeDto> employees) {
 		super();
 		this.id = id;
 		this.registrationNumber = registrationNumber;
@@ -62,12 +74,20 @@ public class CompanyDto {
 		this.addres = addres;
 	}
 
-	public Map<Long, EmployeeDto> getEmployees() {
+	public List<EmployeeDto> getEmployees() {
 		return employees;
 	}
 
-	public void setEmployees(Map<Long, EmployeeDto> employees) {
+	public void setEmployees(List<EmployeeDto> employees) {
 		this.employees = employees;
+	}
+
+	public CompanyType getType() {
+		return type;
+	}
+
+	public void setType(CompanyType type) {
+		this.type = type;
 	}
 
 }

@@ -22,7 +22,7 @@ import hu.cubix.hr.iroman.dto.EmployeeDto;
 import hu.cubix.hr.iroman.mapper.CompanyMapper;
 import hu.cubix.hr.iroman.mapper.EmployeeMapper;
 import hu.cubix.hr.iroman.model.Company;
-import hu.cubix.hr.iroman.model.Employee;
+import hu.cubix.hr.iroman.repository.CompanyRepository;
 import hu.cubix.hr.iroman.service.CompanyService;
 import hu.cubix.hr.iroman.dto.CompanyDto;
 
@@ -31,13 +31,16 @@ import hu.cubix.hr.iroman.dto.CompanyDto;
 public class CompanyController {
 
 	@Autowired
-	private CompanyService companyService;
-
-	@Autowired
 	CompanyMapper companyMapper;
 
 	@Autowired
+	private CompanyService companyService;
+
+	@Autowired
 	EmployeeMapper employeeMapper;
+
+	@Autowired
+	CompanyRepository companyRepository;
 
 	private Map<Long, CompanyDto> companies = new HashMap<>();
 
@@ -49,28 +52,24 @@ public class CompanyController {
 	}
 
 	@GetMapping
-	public List<CompanyDto> findAll(@RequestParam("full") Optional<Boolean> full) {
+	public List<CompanyDto> findAll(@RequestParam Optional<Boolean> full) {
 
-		List<Company> allCompanies = companyService.findAll();
+		Boolean orElse = full.orElse(false);
+		List<Company> allCompanies = companyService.findAllCompany(orElse);
 
-		return full.orElse(false) ?
-
-				companyMapper.companysToDtos(allCompanies) : companyMapper.companySummariesToDtos(allCompanies);
-
+		return orElse ? companyMapper.companysToDtos(allCompanies) : companyMapper.companySummariesToDtos(allCompanies);
 	}
 
 	@GetMapping("/{id}")
-	public CompanyDto findById(@PathVariable long id, @RequestParam("full") Optional<Boolean> full) {
-
-		Company company = companyService.findById(id);
+	public CompanyDto findById(@PathVariable long id, @RequestParam Optional<Boolean> full) {
+		Boolean orElse = full.orElse(false);
+		Company company = companyService.findCompanyById(id, orElse);
 
 		if (company == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 		}
 
-		CompanyDto companyToDto = companyMapper.companyToDto(company);
-
-		return full.orElse(false) ? companyToDto : companyMapper.companySummaryToDto(company);
+		return orElse ? companyMapper.companyToDto(company) : companyMapper.companySummaryToDto(company);
 
 	}
 
@@ -103,14 +102,9 @@ public class CompanyController {
 	}
 
 	@PostMapping("/add/{id}")
-	public CompanyDto addNewEmployee(@PathVariable long id, @RequestBody EmployeeDto employeeDto) {
+	public CompanyDto addNewEmployee(@PathVariable long id,  @RequestParam("employeeId") long empId) {
 
-		Company company = companyService.findById(id);
-		if (company == null)
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
-		Employee newEmployee = companyMapper.dtoToEmployee(employeeDto);
-		Company modifiedCompany = companyService.addNewEmployee(id, newEmployee);
+		Company modifiedCompany = companyService.addNewEmployee(id, empId);
 
 		return companyMapper.companyToDto(modifiedCompany);
 	}
@@ -123,10 +117,6 @@ public class CompanyController {
 
 	@PutMapping("/changeemplist/{id}")
 	public CompanyDto update(@PathVariable long id, @RequestBody List<EmployeeDto> employeeList) {
-
-		Company company = companyService.findById(id);
-		if (company == null)
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
 
 		Company modyfiedCompany = companyService.addNewEmployeeList(id, employeeMapper.DtosToEmployees(employeeList));
 

@@ -2,6 +2,7 @@ package hu.cubix.hr.iroman.repository;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -26,4 +27,14 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 			+ "GROUP BY e.position.name "
 			+ " ORDER BY avg(e.salary) DESC")
 	public List<AverageSalaryByJob> findAverageSalariesByPosition(long companyId);
+	
+	//@EntityGraph(attributePaths = "employees")
+	@EntityGraph("Company.full")
+	@Query("SELECT c FROM Company c")
+	//@Query("SELECT DISTINCT c FROM Company c LEFT JOIN FETCH c.employees")
+	public List<Company> findAllWithEmployees();
+	
+	@EntityGraph("Company.full")
+	@Query("SELECT c FROM Company c WHERE c.id=?1")
+	public Company findByIdWithEmployees(Long id);
 }

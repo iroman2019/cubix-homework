@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
@@ -48,42 +47,10 @@ public class EmployeeController {
 	@Autowired
 	PositionRepository positionRepository;
 
-	// private Map<Long, EmployeeDto> employees = new HashMap<>();
-	private Map<Long, Employee> employeesFromModel = new HashMap<>();
-
-	LocalDateTime startWork1 = LocalDateTime.of(2022, Month.AUGUST, 28, 14, 33, 48);
-
-	LocalDateTime startWork2 = LocalDateTime.of(2019, Month.MARCH, 12, 14, 33, 48);
-
-	LocalDateTime startWork3 = LocalDateTime.of(2014, Month.MARCH, 28, 14, 33, 48);
-
-	LocalDateTime startWork4 = LocalDateTime.of(2010, Month.NOVEMBER, 20, 14, 33);
-
-	{
-//		employees.put(1L, new EmployeeDto((long) 1, "Eric", "developer", 650000,
-//				LocalDateTime.of(2022, Month.AUGUST, 28, 10, 30, 48)));
-//		employeesFromModel.put(1L, new Employee((long) 1, "Tom", developer, 550000, startWork1));
-//		employeesFromModel.put(2L, new Employee((long) 2, "Hannah", manager, 650000, startWork2));
-//		employeesFromModel.put(3L, new Employee((long) 3, "Christine", tester, 400000, startWork3));
-//		employeesFromModel.put(4L, new Employee((long) 4, "Joe", developer, 1000000, startWork4));
-	}
 
 	@GetMapping
 	public List<EmployeeDto> findAll(@RequestParam Optional<Integer> salaryLimit, @SortDefault("id") Pageable pageable) {
-		List<Employee> employees = null;
-		if (salaryLimit.isPresent()) {
-			Page<Employee> pageOfEmployee = employeeRepository.findBySalaryGreaterThan(salaryLimit.get(), pageable);
-			System.out.println("Oldalak száma: " + pageOfEmployee.getTotalPages());
-			System.out.println("Összes adott employee: " + pageOfEmployee.getTotalElements());
-			System.out.println("Első oldal?: " + pageOfEmployee.isFirst());
-			System.out.println("Utolsó oldal?: " + pageOfEmployee.isLast());
-			System.out.println("Van következő oldal?: " + pageOfEmployee.hasNext());
-			System.out.println("Van előző oldal?: " + pageOfEmployee.hasPrevious());
-			
-			employees = pageOfEmployee.getContent();
-		} else {
-			employees = employeeService.findAll();
-		}
+		List<Employee> employees = employeeService.findAllEmployee(salaryLimit, pageable);
 		return employeeMapper.employeesToDtos(employees);
 	}
 
@@ -139,29 +106,13 @@ public class EmployeeController {
 
 	}
 
-//	@GetMapping(value = "/overthelimit", params = { "salaryLimit" })
-//	public List<EmployeeDto> findBySalary(@RequestParam int salaryLimit) {
-//
-//		// Postman test sample: GET
-//		// http://localhost:8080/api/employees?salaryLimit=500000
-//
-//		List<EmployeeDto> employees = employeeMapper.employeesToDtos(employeeService.findAll());
-//
-//		return new ArrayList<>(employees.stream().filter(e -> e.salary() > salaryLimit).collect(Collectors.toList()));
-//	}
 
 	@GetMapping("salarypercent/{id}")
 	public Integer findPercent(@PathVariable long id) {
 
-		Employee employee = employeeService.findById(id);
-
-		if (employee == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		}
-
-		return employeeService.getPayRaisetPercent(employee);
+		return employeeService.findPercentToEmployee(id);
 	}
-	
+
 	@GetMapping(value = "/job", params = { "jobName" })
 	public List<EmployeeDto> findByJob(@RequestParam String jobName) {
 
@@ -195,5 +146,13 @@ public class EmployeeController {
 
 		List<EmployeeDto> employeesBetween = employeeMapper.employeesToDtos(employeeService.findByTimestampBetween(minDateAsDate, maxDateAsDate));
 		return employeesBetween;
+	}
+	
+	@GetMapping("/example")
+	public List<EmployeeDto> findByExample(@RequestBody EmployeeDto employeeDto){
+		
+		List<Employee> employeesByExample = employeeService.findEmployeesByExample(employeeMapper.dtoToEmployee(employeeDto));
+		
+		return employeeMapper.employeesToDtos(employeesByExample);
 	}
 }

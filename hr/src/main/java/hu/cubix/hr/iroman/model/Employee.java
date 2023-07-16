@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 import org.springframework.format.annotation.DateTimeFormat;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
@@ -23,17 +26,24 @@ public class Employee {
 	@DateTimeFormat(pattern = "yyyy.MM.dd HH:mm")
 	private LocalDateTime timestamp;
 
-	@ManyToOne
+	@ManyToOne()
 	private Company company;
 
-	@ManyToOne
+	@ManyToOne(cascade = {CascadeType.ALL})
+	@JoinColumn(name = "position_id")
 	private Position position;
 
 	public Employee() {
 	}
+	
+	public Employee(String name, Position position, int salary, LocalDateTime timestamp) {
+		this.name = name;
+		this.position = position;
+		this.salary = salary;
+		this.timestamp = timestamp;
+	}
 
 	public Employee(Long id, String name, Position position, int salary, LocalDateTime timestamp) {
-		super();
 		this.id = id;
 		this.name = name;
 		this.position = position;
@@ -41,21 +51,13 @@ public class Employee {
 		this.timestamp = timestamp;
 	}
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Employee other = (Employee) obj;
-		return Objects.equals(id, other.id);
+	public Employee(Long id, String name, int salary, LocalDateTime timestamp, Company company, Position position) {
+		this.id = id;
+		this.name = name;
+		this.salary = salary;
+		this.timestamp = timestamp;
+		this.company = company;
+		this.position = position;
 	}
 
 	public Long getId() {
@@ -104,6 +106,23 @@ public class Employee {
 
 	public void setCompany(Company company) {
 		this.company = company;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Employee other = (Employee) obj;
+		return Objects.equals(id, other.id);
 	}
 
 }

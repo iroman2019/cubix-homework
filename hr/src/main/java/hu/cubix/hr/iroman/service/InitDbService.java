@@ -49,10 +49,12 @@ public class InitDbService {
 		LocalDateTime startWork3 = LocalDateTime.of(2014, Month.MARCH, 28, 14, 33, 48);
 
 		LocalDateTime startWork4 = LocalDateTime.of(2010, Month.NOVEMBER, 20, 14, 33);
+		LocalDateTime startTime = LocalDateTime.of(2022,  5, 24, 6, 0, 2);
 
 		Position developer = positionRepository.save(new Position("developer", Qualification.UNIVERSITY));
 		Position tester = positionRepository.save(new Position("tester", Qualification.HIGH_SCHOOL));
 		Position manager = positionRepository.save(new Position("manager", Qualification.UNIVERSITY));
+		Position architect = positionRepository.save(new Position("architect", Qualification.UNIVERSITY));
 
 		List<Employee> employees = new ArrayList<>();
 		employees.add(new Employee((long) 1, "Tom", developer, 750000, startWork1));
@@ -63,6 +65,11 @@ public class InitDbService {
 		employees.add(new Employee((long) 6, "Ester", developer, 780000, startWork2));
 		employees.add(new Employee((long) 7, "Eric", tester, 450000, startWork4));
 		employees.add(new Employee((long) 8, "Susan", tester, 550000, startWork4));
+		employees.add(new Employee((long) 9, "TestEmployee", architect, 750000, startWork4));
+		employees.add(new Employee((long) 10, "TestLisa", tester, 350000, startWork4));
+		employees.add(new Employee((long) 11, "SpecTest1", tester, 332500, startTime));
+		employees.add(new Employee((long) 12, "SpecTest2", tester, 367500, startTime));
+		employees.add(new Employee((long) 13, "SpecTest3", developer, 390000, startTime));
 
 		List<Company> companies = new ArrayList<>();
 		companies.add(new Company(1L, 1532654L, "SoftverQuality Company", "1111 Budapest Teszt u. 3", null));
@@ -77,7 +84,7 @@ public class InitDbService {
 					CompanyType companyType = new CompanyType();
 					companyType.setName(CompanyTypeEnum.BT.toString());
 					companyTypeRepository.save(companyType);
-					company.setType(companyType);					
+					company.setType(companyType);
 				} else {
 					company.setType(companyTypeRepository.findByName(CompanyTypeEnum.BT.toString()));
 				}
@@ -105,8 +112,11 @@ public class InitDbService {
 			} else if (employee.getId() < 5) {
 				employee.setCompany(companyRepository.findByRegistrationNumber(1532234L).get(0));
 				employeeRepository.save(employee);
-			} else {
+			} else if (employee.getName() != "TestEmployee" && employee.getName() != "TestLisa") {
 				employee.setCompany(companyRepository.findByRegistrationNumber(2532654L).get(0));
+				employeeRepository.save(employee);
+			} else {
+				// testEmployee nem kap még companyt
 				employeeRepository.save(employee);
 			}
 		}

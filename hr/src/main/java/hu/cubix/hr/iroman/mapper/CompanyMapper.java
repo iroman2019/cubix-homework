@@ -34,6 +34,7 @@ public interface CompanyMapper {
 	EmployeeDto employeeToDto(Employee employee);
 
 	@InheritInverseConfiguration
+	@Mapping(source = "job", target = "position.name")
 	Employee dtoToEmployee(EmployeeDto employeeDto);
 
 }

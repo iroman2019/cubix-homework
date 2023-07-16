@@ -6,4 +6,6 @@ import hu.cubix.hr.iroman.model.Position;
 
 public interface PositionRepository  extends JpaRepository<Position, Integer>{
 
+	Position findByName(String name);
+
 }

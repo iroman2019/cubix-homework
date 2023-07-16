@@ -7,26 +7,38 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
 
+@NamedEntityGraph(name = "Company.full", attributeNodes = {
+		@NamedAttributeNode(value = "employees", subgraph = "employees-subgraph"),
+		@NamedAttributeNode("type"), }, subgraphs = {
+				@NamedSubgraph(name = "employees-subgraph", attributeNodes = { @NamedAttributeNode("position") }) })
 @Entity
 public class Company {
-	
+
 	@Id
 	@GeneratedValue
 	private Long id;
 	private Long registrationNumber;
 	private String name;
 	private String addres;
-		
-	@OneToMany(mappedBy="company")
+
+	@OneToMany(mappedBy = "company")
 	private List<Employee> employees;
-	
+
 	@ManyToOne
 	private CompanyType type;
 
 	public Company() {
 
+	}
+
+	public Company(String name) {
+		super();
+		this.name = name;
 	}
 
 	public Company(Long id, Long registrationNumber, String name, String addres, List<Employee> employees) {
@@ -37,8 +49,6 @@ public class Company {
 		this.addres = addres;
 		this.employees = employees;
 	}
-	
-	
 
 	public Company(Long id, Long registrationNumber, String name, String addres, CompanyType type,
 			List<Employee> employees) {
@@ -107,12 +117,12 @@ public class Company {
 	public void setEmployees(List<Employee> employees) {
 		this.employees = employees;
 	}
-	
-	public void addEmployee(Employee employee){
-		if(this.employees == null)
+
+	public void addEmployee(Employee employee) {
+		if (this.employees == null)
 			this.employees = new ArrayList<>();
-		employees.add(employee);
 		employee.setCompany(this);
+		employees.add(employee);
 	}
 
 	public CompanyType getType() {

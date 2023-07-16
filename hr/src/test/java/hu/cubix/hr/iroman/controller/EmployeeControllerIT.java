@@ -15,9 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import hu.cubix.hr.iroman.dto.EmployeeDto;
-import hu.cubix.hr.iroman.model.Position;
-import hu.cubix.hr.iroman.model.Qualification;
+
 import reactor.core.publisher.Mono;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)

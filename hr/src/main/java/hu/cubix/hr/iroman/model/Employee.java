@@ -1,16 +1,20 @@
 package hu.cubix.hr.iroman.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 @Entity
 public class Employee {
@@ -29,13 +33,19 @@ public class Employee {
 	@ManyToOne()
 	private Company company;
 
-	@ManyToOne(cascade = {CascadeType.ALL})
+	@ManyToOne(cascade = { CascadeType.ALL })
 	@JoinColumn(name = "position_id")
 	private Position position;
 
+	@OneToMany(mappedBy = "requester", cascade = CascadeType.ALL)
+	private List<Request> requests;
+
+	@OneToMany(mappedBy = "approver", cascade = CascadeType.ALL)
+	private List<Request> approverRequests;
+
 	public Employee() {
 	}
-	
+
 	public Employee(String name, Position position, int salary, LocalDateTime timestamp) {
 		this.name = name;
 		this.position = position;
@@ -58,6 +68,29 @@ public class Employee {
 		this.timestamp = timestamp;
 		this.company = company;
 		this.position = position;
+	}
+
+	public Employee(String name, int salary, LocalDateTime timestamp, Company company, Position position,
+			List<Request> requests) {
+		this.name = name;
+		this.salary = salary;
+		this.timestamp = timestamp;
+		this.company = company;
+		this.position = position;
+		this.requests = requests;
+	}
+
+	public Employee(Long id, String name, int salary, LocalDateTime timestamp, Company company, Position position,
+			List<Request> requests, List<Request> approverRequests) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.salary = salary;
+		this.timestamp = timestamp;
+		this.company = company;
+		this.position = position;
+		this.requests = requests;
+		this.approverRequests = approverRequests;
 	}
 
 	public Long getId() {
@@ -106,6 +139,22 @@ public class Employee {
 
 	public void setCompany(Company company) {
 		this.company = company;
+	}
+
+	public List<Request> getApproverRequests() {
+		return approverRequests;
+	}
+
+	public void setApproverRequests(List<Request> approverRequests) {
+		this.approverRequests = approverRequests;
+	}
+
+	public List<Request> getRequests() {
+		return requests;
+	}
+
+	public void setRequests(List<Request> requests) {
+		this.requests = requests;
 	}
 
 	@Override

@@ -25,6 +25,9 @@ public class CompanyService {
 	private EmployeeService employeeService;
 
 	@Autowired
+	private RequestService requestService;
+	
+	@Autowired
 	PositionRepository positionRepository;
 
 	public Company create(Company company) {

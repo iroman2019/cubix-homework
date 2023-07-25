@@ -1,5 +1,6 @@
 package hu.cubix.hr.iroman.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
@@ -14,10 +15,14 @@ import hu.cubix.hr.iroman.model.Position;
 import hu.cubix.hr.iroman.model.CompanyType;
 import hu.cubix.hr.iroman.model.CompanyTypeEnum;
 import hu.cubix.hr.iroman.model.Qualification;
+import hu.cubix.hr.iroman.model.Request;
+import hu.cubix.hr.iroman.model.RequestStatus;
 import hu.cubix.hr.iroman.repository.CompanyRepository;
 import hu.cubix.hr.iroman.repository.CompanyTypeRepository;
 import hu.cubix.hr.iroman.repository.EmployeeRepository;
 import hu.cubix.hr.iroman.repository.PositionRepository;
+import hu.cubix.hr.iroman.repository.RequestRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class InitDbService {
@@ -33,14 +38,20 @@ public class InitDbService {
 
 	@Autowired
 	PositionRepository positionRepository;
+	
+	@Autowired
+	RequestRepository requestRepository;
 
+	@Transactional
 	public void clearDb() {
+		requestRepository.deleteAll();
 		employeeRepository.deleteAll();
 		positionRepository.deleteAll();
 		companyRepository.deleteAll();
 		companyTypeRepository.deleteAll();
 	}
 
+	@Transactional
 	public void insertTestData() {
 		LocalDateTime startWork1 = LocalDateTime.of(2022, Month.AUGUST, 28, 14, 33, 48);
 
@@ -120,5 +131,10 @@ public class InitDbService {
 				employeeRepository.save(employee);
 			}
 		}
+		
+		//init requests
+		
+		Request newRequest = new  Request(employees.get(2), employees.get(1), LocalDate.of(2023, Month.JULY, 24), LocalDate.of(2023, Month.AUGUST, 10), LocalDateTime.now(), RequestStatus.PENDING_APPROVAL);
+		requestRepository.save(newRequest);
 	}
 }

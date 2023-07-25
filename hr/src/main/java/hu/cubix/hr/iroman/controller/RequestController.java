@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.SortDefault;
 import org.springframework.data.domain.Sort;
@@ -92,11 +93,11 @@ public class RequestController {
 	@GetMapping("/example")
 	public List<RequestDto> findByExample(@RequestBody RequestExample requestExample, Pageable pageable) {
 		RequestDto requestDto = requestExample.getRequestDto();
-		List<Request> requestByExample = requestService.findRequestsByExample(requestMapper.dtoToRequest(requestDto),
+		Page<Request> requestByExample = requestService.findRequestsByExample(requestMapper.dtoToRequest(requestDto),
 				requestExample.getStartDate(), requestExample.getEndDate(), requestExample.getStartPeriod(),
 				requestExample.getEndPeriod(), pageable);
 
-		return requestMapper.requestsToDtos(requestByExample);
+		return requestMapper.requestsToDtos(requestByExample.getContent());
 	}
 
 }

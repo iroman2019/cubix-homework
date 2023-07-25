@@ -11,7 +11,7 @@ import hu.cubix.hr.iroman.model.RequestStatus;
 
 public interface RequestRepository extends JpaRepository<Request, Long>, JpaSpecificationExecutor<Request> {
 
-	@Query("SELECT r FROM Request r LEFT JOIN FETCH r.requester LEFT JOIN FETCH r.approver")
+	@Query("SELECT r FROM Request r LEFT JOIN FETCH r.requester LEFT JOIN FETCH r.approver LEFT JOIN FETCH r.requester.position LEFT JOIN FETCH r.approver.position")
 	Page<Request> findAllWithEmployees(Pageable pageable);
 
 	Page<Request> findAll(Pageable pageable);

@@ -2,7 +2,6 @@ package hu.cubix.hr.iroman.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 
 import org.springframework.data.jpa.domain.Specification;
 
@@ -19,26 +18,38 @@ public class RequestSpecifications {
 
 	public static Specification<Request> hasRequesterName(String requesterName) {
 		return (root, cq, cb) -> cb.like(cb.lower(root.get(Request_.requester).get(Employee_.name)),
-				requesterName.toLowerCase() + "%");
+				(requesterName + "%").toLowerCase());
 	}
 
 	public static Specification<Request> hasApproverName(String approverName) {
 		return (root, cq, cb) -> cb.like(cb.lower(root.get(Request_.approver).get(Employee_.name)),
-				approverName.toLowerCase() + "%");
+				(approverName + "%").toLowerCase());
+	}
+
+	public static Specification<Request> hasRequesterOrApproverName(String requesterName, String approverName) {
+
+		return (root, cq, cb) -> Specification.anyOf(hasRequesterName(requesterName), hasApproverName(approverName))
+				.toPredicate(root, cq, cb);
 	}
 
 	public static Specification<Request> hasDateOfRequstSubmission(LocalDateTime startExampleDate,
 			LocalDateTime enDExampleDate) {
 		return (root, cq, cb) -> cb.between(root.get(Request_.dateOfRequest), startExampleDate, enDExampleDate);
 	}
-	
-	public static Specification<Request> hasStartDate(LocalDate startExampleDate,
-			LocalDate enDExampleDate) {
-		return (root, cq, cb) -> cb.between(root.get(Request_.startDate), startExampleDate, enDExampleDate);
+
+	public static Specification<Request> hasStartDate(LocalDate startExampleDate, LocalDate endExampleDate) {
+		return (root, cq, cb) -> cb.between(root.get(Request_.startDate), startExampleDate, endExampleDate);
 	}
-	
-	public static Specification<Request> hasEndDate(LocalDate startExampleDate,
-			LocalDate enDExampleDate) {
+
+	public static Specification<Request> hasEndDate(LocalDate startExampleDate, LocalDate enDExampleDate) {
 		return (root, cq, cb) -> cb.between(root.get(Request_.endDate), startExampleDate, enDExampleDate);
+	}
+
+	public static Specification<Request> hasStartDateOrEndDateBetweenDates(LocalDate startExampleDate,
+			LocalDate endExampleDate) {
+
+		return (root, cq, cb) -> Specification
+				.anyOf(hasStartDate(startExampleDate, endExampleDate), hasEndDate(startExampleDate, endExampleDate))
+				.toPredicate(root, cq, cb);
 	}
 }

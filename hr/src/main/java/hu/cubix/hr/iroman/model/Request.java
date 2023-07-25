@@ -22,24 +22,10 @@ public class Request {
 	@GeneratedValue
 	private Long id;
 
-//	@OneToOne//(cascade = { CascadeType.ALL })
-//	@JoinColumn(name = "requester_id", insertable = false, updatable = false)
 	@ManyToOne
-	@JoinTable(
-			  name = "approver_requester", 
-			  joinColumns = @JoinColumn(name = "requester_id", referencedColumnName = "id"), 
-			  inverseJoinColumns = @JoinColumn(name = "approver_id", referencedColumnName = "id"))
-	//@ElementCollection
 	private Employee requester;
 
-//	@OneToOne//(cascade = { CascadeType.ALL })
-//	@JoinColumn(name = "approver_id", insertable = false, updatable = false)
 	@ManyToOne
-//	@JoinTable(
-//			  name = "approver_requester", 
-//			  joinColumns = @JoinColumn(name = "approver_id"), 
-//			  inverseJoinColumns = @JoinColumn(name = "requester_id"))
-	//@ElementCollection
 	private Employee approver;
 
 	private LocalDate startDate;

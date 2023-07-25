@@ -134,7 +134,10 @@ public class InitDbService {
 		
 		//init requests
 		
-		Request newRequest = new  Request(employees.get(2), employees.get(1), LocalDate.of(2023, Month.JULY, 24), LocalDate.of(2023, Month.AUGUST, 10), LocalDateTime.now(), RequestStatus.PENDING_APPROVAL);
+		Employee requester = employeeRepository.findByNameStartingWithNamePrefix("Christ").get(0);
+		Employee approver = employeeRepository.findByNameStartingWithNamePrefix("Han").get(0);
+		Request newRequest = new  Request(requester, approver, LocalDate.of(2023, Month.JULY, 24), LocalDate.of(2023, Month.AUGUST, 10), LocalDateTime.now(), RequestStatus.PENDING_APPROVAL);
+		
 		requestRepository.save(newRequest);
 	}
 }

@@ -3,7 +3,6 @@ package hu.cubix.hr.iroman.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,8 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Order;
 
 import hu.cubix.hr.iroman.model.Employee;
 import hu.cubix.hr.iroman.model.Request;
@@ -37,6 +34,7 @@ public class RequestService {
 
 	}
 
+	@Transactional
 	public Request save(Request request) {
 		return requestRepository.save(request);
 	}
@@ -92,61 +90,52 @@ public class RequestService {
 				|| request.getRequestSatus() == RequestStatus.UNDER_RECORDING)) {
 			newRequest.setRequestSatus(request.getRequestSatus());
 		}
-		// save(newRequest);
 		return newRequest;
 	}
 
-	public List<Request> findRequestsByExample(Request example, LocalDateTime startDate, LocalDateTime endDate,
+	public Page<Request> findRequestsByExample(Request example, LocalDateTime startDate, LocalDateTime endDate,
 			LocalDate startPeriod, LocalDate endPeriod, Pageable pageable) {
 		RequestStatus requestStatus = example.getRequestSatus();
 		Employee requester = example.getRequester();
 		String requesterName = null;
-		Employee approver = example.getRequester();
+		Employee approver = example.getApprover();
 		String approverName = null;
 		if (requester != null) {
 			requesterName = requester.getName();
 		}
 		if (approver != null) {
-			requesterName = approver.getName();
+			approverName = approver.getName();
 		}
 		LocalDateTime dateOfRequestSubmission = example.getDateOfRequest();
-		LocalDate start = example.getStartDate();
-		LocalDate end = example.getEndDate();
 
-		Specification<Request> specAllWithAnd = Specification.where(null);
-		Specification<Request> specOrForNames = Specification.where(null);
-		Specification<Request> specOrForDates = Specification.where(null);
+		Specification<Request> spec = Specification.where(null);
 
 		if (requestStatus != null) {
-			specAllWithAnd = specAllWithAnd.and(RequestSpecifications.hasRequestStatus(requestStatus));
+			spec = spec.and(RequestSpecifications.hasRequestStatus(requestStatus));
 		}
 
-		if (StringUtils.hasText(requesterName)) {
-			specOrForNames = specOrForNames.or(RequestSpecifications.hasRequesterName(requesterName));
+		if (StringUtils.hasText(requesterName) && !StringUtils.hasText(approverName)) {
+			spec = spec.and(RequestSpecifications.hasRequesterName(requesterName));
 		}
 
-		if (StringUtils.hasText(approverName)) {
-			specOrForNames = specOrForNames.or(RequestSpecifications.hasApproverName(approverName));
+		if (StringUtils.hasText(approverName) && !StringUtils.hasText(requesterName)) {
+			spec = spec.and(RequestSpecifications.hasApproverName(approverName));
 		}
 
-		specAllWithAnd = specAllWithAnd.and(specOrForNames);
+		if (StringUtils.hasText(requesterName) && StringUtils.hasText(approverName)) {
+			spec = spec.and(RequestSpecifications.hasRequesterOrApproverName(requesterName, approverName));
+		}
 
 		if (dateOfRequestSubmission != null) {
-			specAllWithAnd = specAllWithAnd.and(RequestSpecifications.hasDateOfRequstSubmission(startDate, endDate));
+			spec = spec.and(RequestSpecifications.hasDateOfRequstSubmission(startDate, endDate));
 		}
 
-		if (start != null) {
-			specOrForDates = specOrForDates.or(RequestSpecifications.hasStartDate(startPeriod, endPeriod));
+		if (startPeriod != null || endPeriod != null) {
+			spec = spec.and(RequestSpecifications.hasStartDateOrEndDateBetweenDates(startPeriod, endPeriod));
 		}
 
-		if (end != null) {
-			specOrForDates = specOrForDates.or(RequestSpecifications.hasEndDate(startPeriod, endPeriod));
-		}
-
-		specAllWithAnd = specAllWithAnd.and(specOrForDates);
-
-		Page<Request> allRequest = requestRepository.findAll(specAllWithAnd, pageable);
-		return allRequest.getContent();
+		Page<Request> allRequest = requestRepository.findAll(spec, pageable);
+		return allRequest;
 	};
 
 }

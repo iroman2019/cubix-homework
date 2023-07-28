@@ -7,9 +7,7 @@ import java.util.Objects;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -43,6 +41,13 @@ public class Employee {
 	@OneToMany(mappedBy = "approver", cascade = CascadeType.ALL)
 	private List<Request> approverRequests;
 
+	private String username;
+
+	private String password;
+
+	@ManyToOne
+	private Employee manager;
+
 	public Employee() {
 	}
 
@@ -59,6 +64,17 @@ public class Employee {
 		this.position = position;
 		this.salary = salary;
 		this.timestamp = timestamp;
+	}
+
+	public Employee(Long id, String name, Position position, int salary, LocalDateTime timestamp, String username,
+			String password) {
+		this.id = id;
+		this.name = name;
+		this.position = position;
+		this.salary = salary;
+		this.timestamp = timestamp;
+		this.username = username;
+		this.password = password;
 	}
 
 	public Employee(Long id, String name, int salary, LocalDateTime timestamp, Company company, Position position) {
@@ -155,6 +171,30 @@ public class Employee {
 
 	public void setRequests(List<Request> requests) {
 		this.requests = requests;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public Employee getManager() {
+		return manager;
+	}
+
+	public void setManager(Employee manager) {
+		this.manager = manager;
 	}
 
 	@Override

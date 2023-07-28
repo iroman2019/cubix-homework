@@ -8,18 +8,28 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-
+import hu.cubix.hr.iroman.dto.EmployeeDto;
+import hu.cubix.hr.iroman.model.Employee;
+import hu.cubix.hr.iroman.repository.EmployeeRepository;
 import reactor.core.publisher.Mono;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class EmployeeControllerIT {
+	
+	private static final String TEST_USERNAME = "TestDavid";
+	
+	private static final String TEST_PASS = "pass";
 
 	private static final String API_EMPLOYEES_ID = "/api/employees/{id}";
 
@@ -27,6 +37,23 @@ public class EmployeeControllerIT {
 
 	@Autowired
 	WebTestClient webtestClient;
+	
+	@Autowired
+	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	PasswordEncoder passwordEncoder;
+	
+	@BeforeEach
+	void init() {
+		Optional<Employee> testUser = employeeRepository.findByUsername(TEST_USERNAME);
+		if(testUser.isEmpty()) {
+			Employee newTestUser = new Employee();
+			newTestUser.setUsername(TEST_USERNAME);
+			newTestUser.setPassword(passwordEncoder.encode(TEST_PASS));
+			employeeRepository.save(newTestUser);
+		}
+	}
 
 	@Test
 	void testThatCreatedEmployeeIsListed() {
@@ -71,18 +98,37 @@ public class EmployeeControllerIT {
 	}
 
 	private void createWrongEmployee(EmployeeDto newEmployee) {
-		webtestClient.post().uri(API_EMPLOYEES).bodyValue(newEmployee).exchange().expectStatus().isBadRequest();
+		webtestClient.post()
+			.uri(API_EMPLOYEES)
+			.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+			.bodyValue(newEmployee)
+			.exchange()
+			.expectStatus()
+			.isBadRequest();
 
 	}
 
 	private void createEmployee(EmployeeDto newEmployee) {
-		webtestClient.post().uri(API_EMPLOYEES).bodyValue(newEmployee).exchange().expectStatus().isOk();
+		webtestClient
+			.post()
+			.uri(API_EMPLOYEES)
+			.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+			.bodyValue(newEmployee)
+			.exchange()
+			.expectStatus()
+			.isOk();
 
 	}
 
 	private List<EmployeeDto> getAllEmployees() {
-		List<EmployeeDto> allEmployees = webtestClient.get().uri(API_EMPLOYEES).exchange().expectStatus().isOk()
-				.expectBodyList(EmployeeDto.class).returnResult().getResponseBody();
+		List<EmployeeDto> allEmployees = webtestClient.get()
+				.uri(API_EMPLOYEES)
+				.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+				.exchange().expectStatus()
+				.isOk()
+				.expectBodyList(EmployeeDto.class)
+				.returnResult()
+				.getResponseBody();
 
 		Collections.sort(allEmployees, Comparator.comparing(EmployeeDto::id));
 
@@ -98,14 +144,23 @@ public class EmployeeControllerIT {
 		EmployeeDto updatedEmployee = new EmployeeDto(99, "Nobody", "", 400000,
 				LocalDateTime.of(2010, Month.NOVEMBER, 20, 14, 33), null);
 		
-		webtestClient.put().uri(API_EMPLOYEES_ID, Collections.singletonMap("id", employeeDto.id()))
-		.body(Mono.just(updatedEmployee), EmployeeDto.class).exchange().expectStatus().isBadRequest();
+		webtestClient
+			.put()
+			.uri(API_EMPLOYEES_ID, Collections.singletonMap("id", employeeDto.id()))
+			.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+			.body(Mono.just(updatedEmployee), EmployeeDto.class)
+			.exchange()
+			.expectStatus()
+			.isBadRequest();
 	}
 
 	private void updateEmployeeWithWrongId(EmployeeDto updatedEmployee) {
-		webtestClient.put().uri(API_EMPLOYEES_ID, Collections.singletonMap("id", updatedEmployee.id()))
-		.body(Mono.just(updatedEmployee), EmployeeDto.class).exchange().expectStatus()
-				.isEqualTo(HttpStatus.NOT_FOUND);
+		webtestClient.put()
+			.uri(API_EMPLOYEES_ID, Collections.singletonMap("id", updatedEmployee.id()))
+			.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+			.body(Mono.just(updatedEmployee), EmployeeDto.class).exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.NOT_FOUND);
 	}
 	
 	@Test
@@ -113,6 +168,7 @@ public class EmployeeControllerIT {
 	  webtestClient
 	    .put()
 	    .uri("/api/users/{id}", 133)
+	    .headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
 	    .exchange()
 	    .expectStatus()
 	    .isEqualTo(HttpStatus.NOT_FOUND);
@@ -130,7 +186,9 @@ public class EmployeeControllerIT {
 		EmployeeDto updatedEmployee = new EmployeeDto(10, "Next", "next job", 400000,
 				LocalDateTime.of(2020, Month.NOVEMBER, 10, 14, 33), null);
 
-		webtestClient.put().uri(API_EMPLOYEES_ID, Collections.singletonMap("id", employeeDto.id()))
+		webtestClient.put()
+				.uri(API_EMPLOYEES_ID, Collections.singletonMap("id", employeeDto.id()))
+				.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
 				.body(Mono.just(updatedEmployee), EmployeeDto.class).exchange().expectStatus().isOk().expectBody()
 				.consumeWith(System.out::println).jsonPath("$.id").isEqualTo(updatedEmployee.id()).jsonPath("$.name")
 				.isEqualTo(updatedEmployee.name()).jsonPath("$.job").isEqualTo(updatedEmployee.job())

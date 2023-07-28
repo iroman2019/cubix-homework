@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import hu.cubix.hr.iroman.model.Company;
@@ -41,6 +42,9 @@ public class InitDbService {
 	
 	@Autowired
 	RequestRepository requestRepository;
+	
+	@Autowired
+	PasswordEncoder passwordEncoder;
 
 	@Transactional
 	public void clearDb() {
@@ -69,8 +73,8 @@ public class InitDbService {
 
 		List<Employee> employees = new ArrayList<>();
 		employees.add(new Employee((long) 1, "Tom", developer, 750000, startWork1));
-		employees.add(new Employee((long) 2, "Hannah", manager, 650000, startWork2));
-		employees.add(new Employee((long) 3, "Christine", tester, 400000, startWork3));
+		employees.add(new Employee((long) 2, "Hannah", manager, 650000, startWork2, "Boss", passwordEncoder.encode("123")));
+		employees.add(new Employee((long) 3, "Christine", tester, 400000, startWork3, "Chris", passwordEncoder.encode("123")));
 		employees.add(new Employee((long) 4, "Joe", developer, 650000, startWork4));
 		employees.add(new Employee((long) 5, "Davis", developer, 1200000, startWork4));
 		employees.add(new Employee((long) 6, "Ester", developer, 780000, startWork2));
@@ -136,6 +140,7 @@ public class InitDbService {
 		
 		Employee requester = employeeRepository.findByNameStartingWithNamePrefix("Christ").get(0);
 		Employee approver = employeeRepository.findByNameStartingWithNamePrefix("Han").get(0);
+		requester.setManager(approver);
 		Request newRequest = new  Request(requester, approver, LocalDate.of(2023, Month.JULY, 24), LocalDate.of(2023, Month.AUGUST, 10), LocalDateTime.now(), RequestStatus.PENDING_APPROVAL);
 		
 		requestRepository.save(newRequest);

@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.RequestBodySpec;
 
@@ -45,6 +47,12 @@ public class RequestControllerIT {
 	@Autowired
 	RequestRepository requestRepository;
 
+	@Autowired
+	PasswordEncoder passwordEncoder;
+
+	private static final String TEST_USERNAME = "Boss";
+	private static final String TEST_USERNAME2 = "Chris";
+	private static final String TEST_PASS = "123";
 	private static final String API_REQUESTS = "/api/requests";
 	private static final String API_REQUESTS_ACCEPT_ID = "/api/requests/accept/{id}";
 	private static final String API_REQUESTS_EXAMPLE = "/api/requests/example";
@@ -58,7 +66,7 @@ public class RequestControllerIT {
 	@Test
 	void testThatRequestIsAddedTo() {
 
-		Employee requester = employeeRepository.findByNameStartingWithNamePrefix("Joe").get(0);
+		Employee requester = employeeRepository.findByNameStartingWithNamePrefix("Chris").get(0);
 		Employee approver = employeeRepository.findByNameStartingWithNamePrefix("Han").get(0);
 		Request newRequest = new Request(requester, approver, LocalDate.of(2023, Month.JULY, 30),
 				LocalDate.of(2023, Month.AUGUST, 20), LocalDateTime.now(), RequestStatus.PENDING_APPROVAL);
@@ -68,14 +76,23 @@ public class RequestControllerIT {
 
 		String requesterName = modifiedRequest.getRequester().name();
 		String approverName = modifiedRequest.getApprover().name();
-		assertEquals(requesterName, "Joe");
+		assertEquals(requesterName, "Christine");
 		assertEquals(approverName, "Hannah");
 
 	}
 
 	private RequestDto getRequest(RequestDto request) {
-		RequestDto newRequest = webtestClient.post().uri(API_REQUESTS).bodyValue(request).exchange().expectStatus()
-				.isOk().expectBody(RequestDto.class).returnResult().getResponseBody();
+		RequestDto newRequest = webtestClient
+				.post()
+				.uri(API_REQUESTS)
+				.headers(headers -> headers.setBasicAuth(TEST_USERNAME2, TEST_PASS))
+				.bodyValue(request)
+				.exchange()
+				.expectStatus()
+				.isOk()
+				.expectBody(RequestDto.class)
+				.returnResult()
+				.getResponseBody();
 
 		return newRequest;
 	}
@@ -86,7 +103,7 @@ public class RequestControllerIT {
 		Long requestId = requestRepository.findAll().get(0).getId();
 
 		// ACT
-		RequestDto modifiedRequest = getAcceptedRequet(requestId);
+		RequestDto modifiedRequest = getAcceptedRequest(requestId);
 
 		String newStatus = modifiedRequest.getStatus().name();
 
@@ -94,11 +111,37 @@ public class RequestControllerIT {
 
 	}
 
-	private RequestDto getAcceptedRequet(Long requestId) {
+	private RequestDto getAcceptedRequest(Long requestId) {
 		RequestDto newRequest = webtestClient.put()
-				.uri(uriBuilder -> uriBuilder.path(API_REQUESTS_ACCEPT_ID).build(requestId)).exchange().expectStatus()
-				.isOk().expectBody(RequestDto.class).returnResult().getResponseBody();
+				.uri(uriBuilder -> uriBuilder.path(API_REQUESTS_ACCEPT_ID)
+				.build(requestId))
+				.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(RequestDto.class).returnResult().getResponseBody();
 		return newRequest;
+	}
+
+	@Test
+	void testThatRequestIsWrongAccepted() {
+
+		Long requestId = requestRepository.findAll().get(0).getId();
+
+		// ACT
+		getAcceptedRequestForWrong(requestId);
+
+	}
+
+	private void getAcceptedRequestForWrong(Long requestId) {
+		webtestClient
+			.put()
+			.uri(uriBuilder -> uriBuilder.path(API_REQUESTS_ACCEPT_ID)
+			.build(requestId))
+			.headers(headers -> headers.setBasicAuth(TEST_USERNAME2, TEST_PASS))
+			.exchange()
+			.expectStatus()
+			.isEqualTo(HttpStatus.FORBIDDEN)
+			.expectBody(Void.class);
 	}
 
 	@Test
@@ -132,9 +175,15 @@ public class RequestControllerIT {
 	}
 
 	private List<RequestDto> findByExample(RequestExample requestExample) {
-		List<RequestDto> requestsByExmple = ((RequestBodySpec) webtestClient.get().uri(API_REQUESTS_EXAMPLE))
-				.bodyValue(requestExample).exchange().expectStatus().isOk().expectBodyList(RequestDto.class)
-				.returnResult().getResponseBody();
+		List<RequestDto> requestsByExmple = ((RequestBodySpec) webtestClient.get()
+				.uri(API_REQUESTS_EXAMPLE))
+				.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+				.bodyValue(requestExample)
+				.exchange().expectStatus()
+				.isOk()
+				.expectBodyList(RequestDto.class)
+				.returnResult()
+				.getResponseBody();
 		return requestsByExmple;
 	}
 

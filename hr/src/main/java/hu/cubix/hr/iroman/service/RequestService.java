@@ -1,5 +1,6 @@
 package hu.cubix.hr.iroman.service;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,6 +19,7 @@ import hu.cubix.hr.iroman.model.Employee;
 import hu.cubix.hr.iroman.model.Request;
 import hu.cubix.hr.iroman.model.RequestStatus;
 import hu.cubix.hr.iroman.repository.RequestRepository;
+import hu.cubix.hr.iroman.security.HrUser;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -59,12 +62,25 @@ public class RequestService {
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 		}
 
+		Request request = requestRepository.findById(id).get();
+
+		if (!request.getRequester().getId().equals(getCurrentHrUser().getEmployee().getId())) {
+			throw new AccessDeniedException("Cannot delete other user's holiday request");
+		}
+
 		requestRepository.deleteById(id);
+	}
+
+	private HrUser getCurrentHrUser() {
+		return (HrUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
 
 	@Transactional
 	public Request acceptRequest(long requestId) {
 		Request request = requestRepository.findByIdWithEmployees(requestId);
+		if (!request.getRequester().getManager().getId().equals(getCurrentHrUser().getEmployee().getId())) {
+			throw new AccessDeniedException("Only the manager of the requester can approve the request");
+		}
 		request.setRequestSatus(RequestStatus.ACCEPTED);
 		return request;
 	}

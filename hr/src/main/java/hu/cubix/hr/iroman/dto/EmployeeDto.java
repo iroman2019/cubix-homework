@@ -7,9 +7,9 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
-public record EmployeeDto (@PositiveOrZero long id, @NotEmpty String name, @NotEmpty String job, @Positive int salary, @Past LocalDateTime timestamp, CompanyDto company) {
+public record EmployeeDto (@PositiveOrZero long id, @NotEmpty String name, @NotEmpty String job, @Positive int salary, @Past LocalDateTime timestamp, CompanyDto company, String username) {
 	
 	public EmployeeDto() {
-		this(0, null, null, 0, null, null);
+		this(0, null, null, 0, null, null, null);
 	}
 }

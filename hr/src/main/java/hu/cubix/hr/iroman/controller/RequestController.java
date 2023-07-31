@@ -55,7 +55,8 @@ public class RequestController {
 	}
 
 	@PostMapping
-	@PreAuthorize("#requestDto.requester.id == authentication.principal.employee.id")
+	//@PreAuthorize("#requestDto.requester.id == authentication.principal.employee.id")
+	@PreAuthorize("#requestDto.requester.username == authentication.principal.username")
 	public RequestDto createNewRequest(@RequestBody RequestDto requestDto) {
 
 		Request request = requestMapper.dtoToRequest(requestDto);
@@ -72,7 +73,8 @@ public class RequestController {
 	}
 
 	@PutMapping
-	@PreAuthorize("#request.requester.id == authentication.principal.employee.id")
+	//@PreAuthorize("#request.requester.id == authentication.principal.employee.id")
+	@PreAuthorize("#requestDto.requester.username == authentication.principal.username")
 	public RequestDto updateRequest(@RequestBody RequestDto request) {
 		Request modifiedRequest = requestService.updateRequest(requestMapper.dtoToRequest(request));
 		return requestMapper.requestToDto(modifiedRequest);

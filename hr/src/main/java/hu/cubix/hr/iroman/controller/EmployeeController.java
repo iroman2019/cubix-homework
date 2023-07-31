@@ -1,11 +1,8 @@
 package hu.cubix.hr.iroman.controller;
 
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,7 +83,7 @@ public class EmployeeController {
 
 		// employee.setId(id);
 		employeeDto = new EmployeeDto(id, employeeDto.name(), employeeDto.job(), employeeDto.salary(),
-				employeeDto.timestamp(), employeeDto.company());
+				employeeDto.timestamp(), employeeDto.company(), employeeDto.username());
 
 		Employee employee = employeeMapper.dtoToEmployee(employeeDto);
 

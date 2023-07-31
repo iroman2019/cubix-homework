@@ -24,5 +24,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long>, JpaSp
 	List<Employee> findByTimestampBetween(LocalDateTime minDate, LocalDateTime maxDate);
 
 	Optional<Employee> findByUsername(String username);
+	
+	List<Employee> findByManager(Employee employee);
 
 }

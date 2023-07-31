@@ -11,12 +11,62 @@ public class HrConfigurationProperties {
 
 	private Salary salary;
 
+	private Jwt jwt;
+
+	public Jwt getJwt() {
+		return jwt;
+	}
+
+	public void setJwt(Jwt jwt) {
+		this.jwt = jwt;
+	}
+
 	public Salary getSalary() {
 		return salary;
 	}
 
 	public void setSalary(Salary salary) {
 		this.salary = salary;
+	}
+
+	public static class Jwt {
+		private String secret;
+		private String issuer;
+		private int expminutes;
+		private String alg;
+
+		public String getSecret() {
+			return secret;
+		}
+
+		public void setSecret(String secret) {
+			this.secret = secret;
+		}
+
+		public String getIssuer() {
+			return issuer;
+		}
+
+		public void setIssuer(String issuer) {
+			this.issuer = issuer;
+		}
+
+		public int getExpminutes() {
+			return expminutes;
+		}
+
+		public void setExpminutes(int expminutes) {
+			this.expminutes = expminutes;
+		}
+
+		public String getAlg() {
+			return alg;
+		}
+
+		public void setAlg(String alg) {
+			this.alg = alg;
+		}
+
 	}
 
 	public static class Salary {

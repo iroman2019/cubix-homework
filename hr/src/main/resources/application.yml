@@ -17,3 +17,8 @@ hr:
     smart:
       limits: 10, 8, 7, 5, 2.5
       percents: 20, 10, 5, 3, 2, 0      
+  jwt:
+    secret: mysecret
+    issuer: HrApp
+    expminutes: 5
+    alg: HMAC512

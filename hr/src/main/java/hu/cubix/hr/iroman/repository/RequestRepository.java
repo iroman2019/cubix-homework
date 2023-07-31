@@ -1,5 +1,7 @@
 package hu.cubix.hr.iroman.repository;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +23,5 @@ public interface RequestRepository extends JpaRepository<Request, Long>, JpaSpec
 
 	@Query("SELECT r.requestSatus FROM Request r WHERE r.id=?1")
 	RequestStatus findRequestSatusById(long id);
+
 }

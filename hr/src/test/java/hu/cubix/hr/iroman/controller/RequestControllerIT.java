@@ -11,13 +11,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.RequestBodySpec;
 
+import hu.cubix.hr.iroman.dto.LoginDto;
 import hu.cubix.hr.iroman.dto.RequestDto;
 import hu.cubix.hr.iroman.mapper.RequestMapper;
 import hu.cubix.hr.iroman.model.Employee;
@@ -26,10 +32,12 @@ import hu.cubix.hr.iroman.model.RequestExample;
 import hu.cubix.hr.iroman.model.RequestStatus;
 import hu.cubix.hr.iroman.repository.EmployeeRepository;
 import hu.cubix.hr.iroman.repository.RequestRepository;
+import hu.cubix.hr.iroman.security.JwtService;
 import hu.cubix.hr.iroman.service.InitDbService;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase
+@AutoConfigureWebTestClient(timeout = "360000")
 public class RequestControllerIT {
 
 	@Autowired
@@ -49,6 +57,15 @@ public class RequestControllerIT {
 
 	@Autowired
 	PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	JwtService jwtTokenProvider;
+	
+	@Autowired
+	private JwtService jwtService;
+	
+	@Autowired
+	private AuthenticationManager authManager;
 
 	private static final String TEST_USERNAME = "Boss";
 	private static final String TEST_USERNAME2 = "Chris";
@@ -56,6 +73,7 @@ public class RequestControllerIT {
 	private static final String API_REQUESTS = "/api/requests";
 	private static final String API_REQUESTS_ACCEPT_ID = "/api/requests/accept/{id}";
 	private static final String API_REQUESTS_EXAMPLE = "/api/requests/example";
+	private static final String API_LOGIN = "/api/login";
 
 	@BeforeEach
 	public void init() {
@@ -82,10 +100,12 @@ public class RequestControllerIT {
 	}
 
 	private RequestDto getRequest(RequestDto request) {
+		
 		RequestDto newRequest = webtestClient
 				.post()
 				.uri(API_REQUESTS)
-				.headers(headers -> headers.setBasicAuth(TEST_USERNAME2, TEST_PASS))
+				//.headers(headers -> headers.setBasicAuth(TEST_USERNAME2, TEST_PASS))
+				.headers(headers -> headers.setBearerAuth(getToken(TEST_USERNAME2, TEST_PASS)))
 				.bodyValue(request)
 				.exchange()
 				.expectStatus()
@@ -96,6 +116,7 @@ public class RequestControllerIT {
 
 		return newRequest;
 	}
+
 
 	@Test
 	void testThatRequestIsAccepted() {
@@ -115,7 +136,8 @@ public class RequestControllerIT {
 		RequestDto newRequest = webtestClient.put()
 				.uri(uriBuilder -> uriBuilder.path(API_REQUESTS_ACCEPT_ID)
 				.build(requestId))
-				.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+				//.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+				.headers(headers -> headers.setBearerAuth(getToken(TEST_USERNAME, TEST_PASS)))
 				.exchange()
 				.expectStatus().isOk()
 				.expectBody(RequestDto.class).returnResult().getResponseBody();
@@ -142,6 +164,15 @@ public class RequestControllerIT {
 			.expectStatus()
 			.isEqualTo(HttpStatus.FORBIDDEN)
 			.expectBody(Void.class);
+	}
+	
+	private String getToken(String username, String password) {
+		LoginDto loginDto=new LoginDto();
+		loginDto.setUsername(username);
+		loginDto.setPassword(password);
+		Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
+		String token=jwtService.createJwt((UserDetails)authentication.getPrincipal());
+		return token;
 	}
 
 	@Test
@@ -177,7 +208,8 @@ public class RequestControllerIT {
 	private List<RequestDto> findByExample(RequestExample requestExample) {
 		List<RequestDto> requestsByExmple = ((RequestBodySpec) webtestClient.get()
 				.uri(API_REQUESTS_EXAMPLE))
-				.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+				//.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
+				.headers(headers -> headers.setBearerAuth(getToken(TEST_USERNAME, TEST_PASS)))
 				.bodyValue(requestExample)
 				.exchange().expectStatus()
 				.isOk()

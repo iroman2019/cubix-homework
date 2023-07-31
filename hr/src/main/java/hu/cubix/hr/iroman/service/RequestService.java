@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
@@ -18,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import hu.cubix.hr.iroman.model.Employee;
 import hu.cubix.hr.iroman.model.Request;
 import hu.cubix.hr.iroman.model.RequestStatus;
+import hu.cubix.hr.iroman.repository.EmployeeRepository;
 import hu.cubix.hr.iroman.repository.RequestRepository;
 import hu.cubix.hr.iroman.security.HrUser;
 import jakarta.transaction.Transactional;
@@ -27,6 +29,9 @@ public class RequestService {
 
 	@Autowired
 	private RequestRepository requestRepository;
+	
+	@Autowired
+	private EmployeeRepository employeeRepository;
 
 	public Request create(Request request) {
 
@@ -39,6 +44,10 @@ public class RequestService {
 
 	@Transactional
 	public Request save(Request request) {
+		long employeeId=employeeRepository.findByUsername(getCurrentUser().getUsername()).get().getId();
+		if (request.getRequester().getId()!=employeeId) {
+			throw new AccessDeniedException("Cannot create other user's holiday request");
+		}
 		return requestRepository.save(request);
 	}
 
@@ -64,7 +73,11 @@ public class RequestService {
 
 		Request request = requestRepository.findById(id).get();
 
-		if (!request.getRequester().getId().equals(getCurrentHrUser().getEmployee().getId())) {
+//		if (!request.getRequester().getId().equals(getCurrentHrUser().getEmployee().getId())) {
+//			throw new AccessDeniedException("Cannot delete other user's holiday request");
+//		}
+		
+		if (!request.getRequester().getUsername().equals(getCurrentUser().getUsername())) {
 			throw new AccessDeniedException("Cannot delete other user's holiday request");
 		}
 
@@ -74,11 +87,18 @@ public class RequestService {
 	private HrUser getCurrentHrUser() {
 		return (HrUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 	}
+	
+	private User getCurrentUser() {
+		return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	}
 
 	@Transactional
 	public Request acceptRequest(long requestId) {
 		Request request = requestRepository.findByIdWithEmployees(requestId);
-		if (!request.getRequester().getManager().getId().equals(getCurrentHrUser().getEmployee().getId())) {
+//		if (!request.getRequester().getManager().getId().equals(getCurrentHrUser().getEmployee().getId())) {
+//			throw new AccessDeniedException("Only the manager of the requester can approve the request");
+//		}
+		if (!request.getRequester().getManager().getUsername().equals(getCurrentUser().getUsername())) {
 			throw new AccessDeniedException("Only the manager of the requester can approve the request");
 		}
 		request.setRequestSatus(RequestStatus.ACCEPTED);

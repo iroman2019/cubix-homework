@@ -48,6 +48,9 @@ public class Employee {
 	@ManyToOne
 	private Employee manager;
 
+	@OneToMany(mappedBy = "manager")
+	private List<Employee> subordinates;
+
 	public Employee() {
 	}
 
@@ -195,6 +198,14 @@ public class Employee {
 
 	public void setManager(Employee manager) {
 		this.manager = manager;
+	}
+
+	public List<Employee> getSubordinates() {
+		return subordinates;
+	}
+
+	public void setSubordinates(List<Employee> subordinates) {
+		this.subordinates = subordinates;
 	}
 
 	@Override

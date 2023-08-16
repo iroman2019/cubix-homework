@@ -14,7 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.web.reactive.server.WebTestClient;
+/* import org.springframework.test.web.reactive.server.WebTestClient.RequestBodySpec;
+import org.springframework.test.web.reactive.server.WebTestClient.RequestHeadersSpec; */
 
 import hu.cubix.hr.iroman.dto.CompanyDto;
 import hu.cubix.hr.iroman.dto.EmployeeDto;
@@ -26,6 +29,13 @@ import hu.cubix.hr.iroman.repository.CompanyTypeRepository;
 import hu.cubix.hr.iroman.repository.EmployeeRepository;
 import hu.cubix.hr.iroman.repository.PositionRepository;
 import hu.cubix.hr.iroman.service.InitDbService;
+/* import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriBuilder; */
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase
@@ -57,6 +67,9 @@ public class CompanyControllerIT {
 
 	@Autowired
 	CompanyTypeRepository companyTypeRepository;
+	
+	@LocalServerPort
+    int randomServerPort;
 
 	private static final String API_COMPANIES_ADD_ID = "/api/companies/add/{id}";
 	private static final String API_COMPANIES_DELETE_EMP_ID = "/api/companies/deleteemp/{id}";
@@ -84,13 +97,32 @@ public class CompanyControllerIT {
 	}
 
 	private CompanyDto getCompanyWithNewEmployee(Long companyId, long empId) {
+//		final String clientSecret = "my_little_secret";
+//		HttpHeaders httpHeaders = new HttpHeaders();
+//		httpHeaders.set("X-CSRF-TOKEN", clientSecret);
+//		httpHeaders.set("Cookie", "CSRF-TOKEN=" + clientSecret);
+//		ResponseEntity<String> response = http(HttpMethod.POST, API_COMPANIES_ADD_ID, httpHeaders);
 		CompanyDto company = webtestClient.post()
 				.uri(uriBuilder -> uriBuilder.path(API_COMPANIES_ADD_ID).queryParam("employeeId", empId)
 						.build(companyId))
+				//.uri(uriBuilder -> ((UriBuilder) ((RequestHeadersSpec<RequestBodySpec>) uriBuilder.path(API_COMPANIES_ADD_ID).queryParam("employeeId", empId))
+//				.headers(httpHeadersOnWebClientBeingBuilt -> { 
+//			         httpHeadersOnWebClientBeingBuilt.addAll( httpHeaders );
+//			         }
+//				))
+				//.build(companyId))
 				.exchange().expectStatus().isOk().expectBody(CompanyDto.class).returnResult().getResponseBody();
 
 		return company;
 	}
+	
+//	private ResponseEntity<String> http(final HttpMethod method, final String path, HttpHeaders headers) {
+//		RestTemplate restTemplate = new RestTemplate();
+//		HttpHeaders httpHeaders = headers == null ? new HttpHeaders() : headers;
+//		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+//		HttpEntity<Void> testRequest = new HttpEntity<>(httpHeaders);
+//		return restTemplate.exchange("http://localhost:"+randomServerPort+"/" + path, method, testRequest, String.class);
+//	}
 
 	@Test
 	void testDeleteEmployeeFromCompany() {

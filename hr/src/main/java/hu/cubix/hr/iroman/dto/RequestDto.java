@@ -47,6 +47,14 @@ public class RequestDto {
 		this.requester = requester;
 	}
 
+	public EmployeeDto getApprover() {
+		return approver;
+	}
+
+	public void setApprover(EmployeeDto approver) {
+		this.approver = approver;
+	}
+
 	public LocalDate getStartDate() {
 		return startDate;
 	}
@@ -77,14 +85,6 @@ public class RequestDto {
 
 	public void setStatus(RequestStatus status) {
 		this.status = status;
-	}
-
-	public EmployeeDto getApprover() {
-		return approver;
-	}
-
-	public void setApprover(EmployeeDto approver) {
-		this.approver = approver;
 	}
 
 }

@@ -24,8 +24,7 @@ public class HrUserDetailsService implements UserDetailsService {
 		Employee employee = employeeRepository.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException(username));
 
-		return new HrUser(username, employee.getPassword(), Arrays.asList(new SimpleGrantedAuthority("USER")),
-				employee);
+		return new HrUser(username, employee.getPassword(), Arrays.asList(new SimpleGrantedAuthority("USER")), employee);
 	}
 
 }

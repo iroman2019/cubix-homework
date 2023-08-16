@@ -15,10 +15,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.reactive.server.WebTestClient.RequestBodySpec;
@@ -40,6 +36,10 @@ import hu.cubix.hr.iroman.service.InitDbService;
 @AutoConfigureWebTestClient(timeout = "360000")
 public class RequestControllerIT {
 
+	private static final String APPROVER = "Han";
+
+	private static final String REQUESTER = "Chris";
+
 	@Autowired
 	InitDbService initDbService;
 
@@ -50,7 +50,7 @@ public class RequestControllerIT {
 	RequestMapper requestMapper;
 
 	@Autowired
-	WebTestClient webtestClient;
+	WebTestClient webTestClient;
 
 	@Autowired
 	RequestRepository requestRepository;
@@ -60,20 +60,16 @@ public class RequestControllerIT {
 	
 	@Autowired
 	JwtService jwtTokenProvider;
-	
-	@Autowired
-	private JwtService jwtService;
-	
-	@Autowired
-	private AuthenticationManager authManager;
 
 	private static final String TEST_USERNAME = "Boss";
-	private static final String TEST_USERNAME2 = "Chris";
+	private static final String TEST_USERNAME2 = REQUESTER;
 	private static final String TEST_PASS = "123";
 	private static final String API_REQUESTS = "/api/requests";
 	private static final String API_REQUESTS_ACCEPT_ID = "/api/requests/accept/{id}";
 	private static final String API_REQUESTS_EXAMPLE = "/api/requests/example";
 	private static final String API_LOGIN = "/api/login";
+	
+	private String jwt;
 
 	@BeforeEach
 	public void init() {
@@ -84,8 +80,8 @@ public class RequestControllerIT {
 	@Test
 	void testThatRequestIsAddedTo() {
 
-		Employee requester = employeeRepository.findByNameStartingWithNamePrefix("Chris").get(0);
-		Employee approver = employeeRepository.findByNameStartingWithNamePrefix("Han").get(0);
+		Employee requester = employeeRepository.findByNameStartingWithNamePrefix(REQUESTER).get(0);
+		Employee approver = employeeRepository.findByNameStartingWithNamePrefix(APPROVER).get(0);
 		Request newRequest = new Request(requester, approver, LocalDate.of(2023, Month.JULY, 30),
 				LocalDate.of(2023, Month.AUGUST, 20), LocalDateTime.now(), RequestStatus.PENDING_APPROVAL);
 
@@ -101,7 +97,7 @@ public class RequestControllerIT {
 
 	private RequestDto getRequest(RequestDto request) {
 		
-		RequestDto newRequest = webtestClient
+		RequestDto newRequest = webTestClient
 				.post()
 				.uri(API_REQUESTS)
 				//.headers(headers -> headers.setBasicAuth(TEST_USERNAME2, TEST_PASS))
@@ -133,10 +129,9 @@ public class RequestControllerIT {
 	}
 
 	private RequestDto getAcceptedRequest(Long requestId) {
-		RequestDto newRequest = webtestClient.put()
+		RequestDto newRequest = webTestClient.put()
 				.uri(uriBuilder -> uriBuilder.path(API_REQUESTS_ACCEPT_ID)
 				.build(requestId))
-				//.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
 				.headers(headers -> headers.setBearerAuth(getToken(TEST_USERNAME, TEST_PASS)))
 				.exchange()
 				.expectStatus().isOk()
@@ -155,7 +150,7 @@ public class RequestControllerIT {
 	}
 
 	private void getAcceptedRequestForWrong(Long requestId) {
-		webtestClient
+		webTestClient
 			.put()
 			.uri(uriBuilder -> uriBuilder.path(API_REQUESTS_ACCEPT_ID)
 			.build(requestId))
@@ -170,9 +165,14 @@ public class RequestControllerIT {
 		LoginDto loginDto=new LoginDto();
 		loginDto.setUsername(username);
 		loginDto.setPassword(password);
-		Authentication authentication = authManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword()));
-		String token=jwtService.createJwt((UserDetails)authentication.getPrincipal());
-		return token;
+		jwt = webTestClient.post()
+				.uri(API_LOGIN)
+				.bodyValue(loginDto)
+				.exchange()
+				.expectBody(String.class)
+				.returnResult()
+				.getResponseBody();
+		return jwt;
 	}
 
 	@Test
@@ -206,9 +206,8 @@ public class RequestControllerIT {
 	}
 
 	private List<RequestDto> findByExample(RequestExample requestExample) {
-		List<RequestDto> requestsByExmple = ((RequestBodySpec) webtestClient.get()
+		List<RequestDto> requestsByExmple = ((RequestBodySpec) webTestClient.get()
 				.uri(API_REQUESTS_EXAMPLE))
-				//.headers(headers -> headers.setBasicAuth(TEST_USERNAME, TEST_PASS))
 				.headers(headers -> headers.setBearerAuth(getToken(TEST_USERNAME, TEST_PASS)))
 				.bodyValue(requestExample)
 				.exchange().expectStatus()
